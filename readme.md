@@ -5,7 +5,7 @@ WE1S Chomp is a client-side, human-assisted, generic-ish web scraper designed to
 
 ## Installing
 
-**Option One:** Clone the repo and install manually with ```pip```.
+Clone the repo and install manually with ```pip```.
 
 ``` 
 git clone https://github.com/seangilleran/we1schomp.git
@@ -13,8 +13,6 @@ pip install -r requirements.txt
 ```
 
  WE1S Chomp requires Python version 3.6 or later, available [here](https://www.python.org/), and the Selenium Chrome Driver, which is available [here](https://chromedriver.storage.googleapis.com/).
-
-**Option Two:** Windows users can download the latest release, including a working Python virutal environment, [here](https://github.com/seangilleran/we1schomp/releases). Unzip the folder, edit ```settings.ini```, and run using the ```.bat``` files.
 
 
 ## Set-Up
@@ -39,7 +37,7 @@ Every website you query *must* have a section, and every section *must* have a p
 
 ## URL Collection
 
-Once you have configured ```settings.ini```, you can begin collecting URLs. Run this process by double-clicking ```get_urls.bat``` (Windows only) or with:
+Once you have configured ```settings.ini```, you can begin collecting URLs.
 
 ```
 python we1schomp.py --urls_only
@@ -50,7 +48,7 @@ Eventually, Google will become suspicious and give you a CAPTCHA to complete to 
 
 ## Article Collection
 
-Once you have a set of URL files in place, you can begin collecting articles. Run this process by double-clicking ```get_articles.bat``` (Windows only) or with:
+Once you have a set of URL files in place, you can begin collecting articles.
 
 ```
 python we1schomp.py --articles_only
