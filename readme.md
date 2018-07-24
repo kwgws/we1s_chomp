@@ -12,7 +12,7 @@ git clone https://github.com/seangilleran/we1schomp.git
 pip install -r requirements.txt
 ```
 
- WE1S Chomp requires Python version 3.7 or later, available [here](https://www.python.org/downloads/release/python-370/), and the Selenium Chrome Driver, which is available [here](https://chromedriver.storage.googleapis.com/index.html?path=2.40/).
+ WE1S Chomp requires Python version 3.6 or later, available [here](https://www.python.org/), and the Selenium Chrome Driver, which is available [here](https://chromedriver.storage.googleapis.com/).
 
 **Option Two:** Windows users can download the latest release, including a working Python virutal environment, [here](https://github.com/seangilleran/we1schomp/releases). Unzip the folder, edit ```settings.ini```, and run using the ```.bat``` files.
 
