@@ -23,6 +23,8 @@ WE1S Chomp works in two stages. First it collects lists of relevant URLs from Go
 Each website should have a section in ```settings.ini``` that includes information about it and any special instructions for it WE1S Chomp might require. **Do not include ```http://```, ```www.```, etc.** For example:
 
 ```ini
+...
+
 [thebaffler.com]
 name = The Baffler
 url_stops = .forum,/author,/contributor,/es/
