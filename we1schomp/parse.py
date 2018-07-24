@@ -58,7 +58,7 @@ def urls_from_file(filename, path):
 
             return data
 
-    raise FileNotFoundError(os.path.join(path, filename))
+    raise FileNotFoundError(os.path.join(path, 'urls', filename))
 
 
 def content_from_html(html, content_tag='p', content_length_min=250):
