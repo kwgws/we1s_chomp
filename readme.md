@@ -42,7 +42,7 @@ Every website you query *must* have a section, and every section *must* have a p
 
 Once you have configured ```settings.ini```, you can begin collecting URLs.
 
-```
+```bash
 python we1schomp.py --urls_only
 ```
 
@@ -53,7 +53,7 @@ Eventually, Google will become suspicious and give you a CAPTCHA to complete to 
 
 Once you have a set of URL files in place, you can begin collecting articles.
 
-```
+```bash
 python we1schomp.py --articles_only
 ```
 
