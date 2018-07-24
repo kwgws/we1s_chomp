@@ -9,6 +9,7 @@ Clone the repo and install manually with ```pip```.
 
 ``` 
 git clone https://github.com/seangilleran/we1schomp.git
+cd we1schomp
 pip install -r requirements.txt
 ```
 
