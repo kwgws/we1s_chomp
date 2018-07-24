@@ -29,14 +29,18 @@ def load_defaults(parser=None):
             '/de/,'
             '/fr/,'
             '.pdf'),
-        'schema_version': 'we1schomp_2',
+        'schema_version': 'we1sv2.0',
         'output_filename': '{site}_{term}_urls_{timestamp}.json',
         'output_path': 'output',
         'search_url': 'http://google.com/search?q="{term}"+site%%3A{site}&safe=off&filter=0',  # noqa
         'wait_for_keypress': False,
         'sleep_min': 1.0,
-        'sleep_max': 5.0}
-    parser['we1s.ucsb.edu'] = {}
+        'sleep_max': 5.0,
+        'content_tag': 'p',
+        'content_length_min': 150}
+    parser['we1s.ucsb.edu'] = {
+        'name': 'WhatEvery1Says'
+    }
 
     return parser
 
