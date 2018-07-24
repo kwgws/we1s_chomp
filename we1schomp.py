@@ -26,6 +26,7 @@ def scrape_urls_from_google(settings='settings.ini'):
         for term in settings[site]['terms'].split(','):
 
             save.urls_to_file(
+                site=site, term=term,
                 data=scrape.urls_from_google(
                     term=term, site=site, browser=browser,
                     schema_version=settings[site]['schema_version'],
@@ -60,7 +61,7 @@ def scrape_content_from_sites(settings='settings.ini'):
 
             articles = parse.urls_from_file(
                 filename=settings[site]['output_filename'].format(
-                    site=site.replace('.', '-'),
+                    site=site.replace('.', '-').replace('/', '-'),
                     term=term.replace(' ', '-'),
                     timestamp='').split('.')[0].strip('_'),
                 path=settings[site]['output_path'])
@@ -75,7 +76,7 @@ def scrape_content_from_sites(settings='settings.ini'):
                     content_length_min=settings[site].getint('content_length_min'))  # noqa
 
                 name = settings[site]['output_filename'].format(
-                    site=site.replace('.', '-'),
+                    site=site.replace('.', '-').replace('/', '-'),
                     term=term.replace(' ', '-'),
                     timestamp=''
                 ).replace('urls', f'{count:003d}').split('.')[0].strip('_')

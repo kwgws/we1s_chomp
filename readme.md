@@ -64,6 +64,6 @@ WE1S Chomp can read older URL files, but you need to do a few things to make the
 
 First, place the files in ```output/urls```. Modify the filenames to add "```the```", "```-com```", "```-net```", etc. For instance, "```baffler_humanities_urls.json```" should be changed to "```thebaffler-com_humanities_urls.json```".
 
-Second, make sure that each site has an entry in ```settings.ini```.
+Second, make sure that each site has a working entry in ```settings.ini```.
 
 Finally, run article collection as normal.
