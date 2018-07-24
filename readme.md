@@ -7,7 +7,7 @@ WE1S Chomp is a client-side, human-assisted, generic-ish web scraper designed to
 
 Clone the repo and install manually with ```pip```.
 
-``` 
+```bash
 git clone https://github.com/seangilleran/we1schomp.git
 cd we1schomp
 pip install -r requirements.txt
