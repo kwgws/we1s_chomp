@@ -104,7 +104,6 @@ venv.bak/
 .mypy_cache/
 
 # we1schomp
-/.env
+/venv
 /.vscode
 /output
-*.bat
