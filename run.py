@@ -2,6 +2,7 @@
 """
 """
 
+from time import sleep
 from argparse import ArgumentParser
 import we1schomp
 from we1schomp import config
@@ -13,6 +14,7 @@ def _main():
 
     print('\n\nWE1S Chomp, version Alpha 3')
     print('by the WhatEvery1Says Team <http://we1s.ucsb.edu>\n')
+    sleep(3.0)
 
     parser = ArgumentParser()
     parser.add_argument(
@@ -38,7 +40,7 @@ def _main():
         we1schomp.scrape(sites, settings, browser)
     browser.close()
 
-    print('\nQueue finished. Have a nice day!\n\n')
+    print('\nChomp complete. Delicious!\n\n')
 
 
 if __name__ == '__main__':

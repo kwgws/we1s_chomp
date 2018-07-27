@@ -2,6 +2,7 @@
 """
 """
 
+import logging
 from bs4 import BeautifulSoup
 from we1schomp import data
 
@@ -10,10 +11,12 @@ def query(sites, settings, browser):
     """
     """
 
+    log = logging.getLogger(__name__)
+
     count = 0
     for site in sites:
         count += len(site['terms'])
-    print(f'Running {count} queries from {len(sites)} sites...')
+    log.info(f'Running {count} queries from {len(sites)} sites')
 
     articles = []
     for site in sites:
@@ -25,8 +28,8 @@ def query(sites, settings, browser):
             )
             for article in article_data:
                 articles.append(article)
-                data.save_to_json(article, settings)
 
+    log.info('Queries complete')
     return articles
 
 
@@ -34,18 +37,18 @@ def _scrape_from_google(site, term, browser):
     """
     """
 
-    query_string = site['query_string'].format(url=site['url'], term=term)
-    print(f'Starting query: {query_string}')
+    log = logging.getLogger(__name__)
 
+    log.info(f'Querying "{term}" at {site["url"]}')
+    query_string = site['query_string'].format(url=site['url'], term=term)
     browser.go(query_string)
 
     articles = []
     while True:
 
         browser.sleep()
-        print(f'> {browser.current_url}')
-
         browser.captcha_check()
+
         soup = BeautifulSoup(browser.source, 'html5lib')
         for rc in soup.find_all('div', {'class': 'rc'}):
 
@@ -58,6 +61,7 @@ def _scrape_from_google(site, term, browser):
             for stop in site['url_stops']:
                 if stop in href:
                     stop_flag = True
+                    log.warn(f'Skipping {href} (Contains stopword "{stop}"")')
                     break
             if stop_flag:
                 continue
@@ -87,7 +91,13 @@ def _scrape_from_google(site, term, browser):
             }
             articles.append(article)
 
+            if date == 'N.D.':
+                log.warn(f'OK *N.D. {href}')
+            else:
+                log.info(f'OK {href}')
+
         if not browser.click_on_id('pnnext'):
+            log.info('End of results')
             break
 
     return articles
