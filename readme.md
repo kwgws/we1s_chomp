@@ -5,6 +5,14 @@ WE1S Chomp is a client-side, human-assisted, generic-ish web scraper designed to
 
 ## Installing
 
+Download the latest binary from the releases page [here](https://github.com/seangilleran/we1schomp/releases) and unzip to any directory. Run with:
+
+```bash
+we1schomp.exe [--options]
+```
+
+### From Source
+
 Clone the repo and install manually with ```pip```.
 
 ```bash
