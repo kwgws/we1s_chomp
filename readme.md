@@ -2,7 +2,6 @@
 
 WE1S Chomp is a client-side, human-assisted, generic-ish web scraper designed to collect broad data samples from specific websites based on specific Google queries. It should (eventually) be extensible, user-friendly, and capable of producing good, clean results at the scale of thousands or tens of thousands of queries.
 
-
 ## Installing
 
 Download the latest binary from the releases page [here](https://github.com/seangilleran/we1schomp/releases) and unzip to any directory. Run with:
@@ -22,7 +21,6 @@ pip install -r requirements.txt
 ```
 
  **IMPORTANT:** WE1S Chomp requires **Python 3.6 or later**, available [here](https://www.python.org/), and the **Selenium Chrome Driver**, (included).
-
 
 ## Set-Up
 
@@ -45,7 +43,6 @@ skip = true
 
 Every website you query *must* have a section, and every section *must* have a URL and proper name. Do not include ```http://```, ```www.```, etc.All the other settings are optional. Any settings you do not specify will revert to the defaults provided under the heading ```[DEFAULT]```.
 
-
 ## URL Collection
 
 Once you have configured ```settings.ini```, you can begin collecting URLs.
@@ -55,7 +52,6 @@ python run.py --urls_only
 ```
 
 Eventually, Google will become suspicious and give you a CAPTCHA to complete to prove that you're not a bot. Fill this out in Chrome, return to the WE1S Chomp terminal, and press ```Enter```.
-
 
 ## Article Collection
 
