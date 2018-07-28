@@ -2,6 +2,7 @@
 """
 """
 
+import html
 import logging
 from gettext import gettext as _
 
@@ -48,7 +49,7 @@ def get_content_from_url(url, content_tag, length_min, browser):
     content = str()
     for tag in soup.find_all(content_tag):
         if len(tag.text) > length_min:
-            content += bleach.clean(tag.text) + ' '
+            content += html.unescape(bleach.clean(tag.text)) + ' '
     content = clean_str(content)
 
     length = f"{len(content.split(' '))} words"
