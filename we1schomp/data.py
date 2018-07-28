@@ -10,6 +10,7 @@ import sys
 from gettext import gettext as _
 from time import localtime
 
+import regex as re
 from unidecode import unidecode
 
 
@@ -131,4 +132,17 @@ def clean_str(dirty_string):
     ascii_string = unidecode(dirty_string)
     ascii_string = ''.join([x for x in ascii_string if x in string.printable])
     ascii_string = ' '.join(ascii_string.split())
+
+    # Regex processing. Experimental!
+    # This looks for:
+    # - URL strings, common in blog posts, etc., and probably not useful for
+    #   topic modelling.
+    # - Irregular punctuation, i.e. punctuation left over from formatting
+    #   or HTML symbols that Bleach missed.
+    rex = re.compile(r'http(.*?)\s|[^a-zA-Z0-9\s\.\,\!\"\'\-\:\;\p{Sc}]')
+    ascii_string = re.sub(rex, ' ', ascii_string)
+
+    # This could probably be handled with a better regex string.
+    ascii_string = ascii_string.replace(' .', '.')
+
     return ascii_string
