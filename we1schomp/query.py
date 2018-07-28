@@ -51,16 +51,18 @@ def find_urls_from_google(site, term, settings, browser):
             url = str(link.get('href'))
 
             # Drop results that include stop words.
-            if [stop for stop in site['url_stops'] if stop in url] is not None:
+            if [stop for stop in site['url_stops'] if stop in url] != []:
                 log.warning(_('we1schomp_log_query_skip_%s'), url)
                 continue                   
 
             # Create metadata.
-            doc_id = uuid4()  # Use UUID4 library to get unique id.
+            doc_id = str(uuid4())  # Use UUID4 library to get unique id.
             pub_short = site['short_name']
 
             # Sometimes the link's URL gets mushed in with the text. (Why?)
             title = str(link.text).split('http')[0]
+
+            # Clean the term for use in filenames, etc.
 
             # Parse date from result. This is much more consistant than doing
             # it from the articles themselves, but it can be a little spotty.
@@ -77,8 +79,9 @@ def find_urls_from_google(site, term, settings, browser):
                 'doc_id': doc_id,
                 'attachment_id': '',
                 'namespace': settings['NAMESPACE'],
-                'name': site['db_name'].format(pub_short, doc_id),
-                'metapatch': site['metapath'].format(pub_short),
+                'name': site['db_name'].format(
+                    site=pub_short, term=term.replace(' ', '-'), doc_id=doc_id),
+                'metapath': site['metapath'].format(site=pub_short),
                 'pub': site['name'],
                 'pub_short': site['short_name'],
                 'pub_url': site['url'],
@@ -89,6 +92,7 @@ def find_urls_from_google(site, term, settings, browser):
                 'length': '',
                 'search_term': term
             }
+            log.info(article)
             yield article
                 
         if not browser.click_on_id('pnnext'):

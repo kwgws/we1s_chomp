@@ -84,7 +84,7 @@ def load_articles_from_json(path, no_skip=False):
 
         # If a file already has stuff in the "content" key, that implies
         # we've already scraped it, so we can safely skip it.
-        if not no_skip and json_data['content'] is not None:
+        if not no_skip and json_data['content'] != '':
             log.warning(_('we1schomp_log_file_skip_%s'), json_file)
             continue
 
@@ -107,6 +107,17 @@ def find_json_files_in_path(path):
             json_data = json.load(json_file)
 
         yield filename, json_data
+
+
+def get_site_from_article(article, sites):
+    """
+    """
+
+    for site in sites:
+        if article['pub_short'] == site['short_name']:
+            return site
+    
+    return None
 
 
 def clean_str(dirty_string):

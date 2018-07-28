@@ -26,15 +26,14 @@ def main():
     # Part 1: URL scraping (from Google). Disable with --articles-only.
     if not args.articles_only:
         for article in query.find_urls(sites=sites, settings=settings, browser=browser):
-            print(article)
             data.save_article_to_json(article=article, settings=settings)
             articles.append(article)
 
     # Part 2: Article scraping. Disable with --urls-only.
     if not args.urls_only:
         if not articles:
-            queries = data.load_articles_from_json(settings['OUTPUT_PATH'])
-        articles = scrape.find_content(articles=queries, browser=browser)
+            articles = data.load_articles_from_json(settings['OUTPUT_PATH'])
+        articles = scrape.find_content(articles=articles, sites=sites, browser=browser)
         for article in articles:
             data.save_article_to_json(article=article, settings=settings)
 

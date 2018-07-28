@@ -20,7 +20,6 @@ def from_ini(filename):
     settings = get_settings(parser)
     log = get_logger(parser)
     sites = [site for site in get_sites(parser)]
-    print(sites)
 
     # Create the output path if it doesn't exist yet.
     if not os.path.exists(settings['OUTPUT_PATH']):
@@ -44,7 +43,8 @@ def get_settings(config):
         'SLEEP_MAX':
             max([config.getfloat('sleep_min'), config.getfloat('sleep_max')]),
         'OUTPUT_FILENAME': config['output_filename'],
-        'OUTPUT_PATH': config['output_path']
+        'OUTPUT_PATH': config['output_path'],
+        'NAMESPACE': config['namespace']
     }
 
     return settings
@@ -68,6 +68,8 @@ def get_sites(config):
         site = {
             'short_name': name,
             'name': site['name'],
+            'db_name': site['db_name'],
+            'metapath': site['metapath'],
             'url': site['site'].replace('http://', '').replace('https://', ''),
             'terms': site['terms'].strip(',').split(','),
             'url_stops': site['url_stops'].strip(',').split(','),
