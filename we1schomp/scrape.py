@@ -60,7 +60,9 @@ def get_content_from_url(url, content_tag, length_min, browser):
     # - Irregular punctuation, i.e. punctuation left over from formatting
     #   or HTML symbols that Bleach missed.
     rex = re.compile(r'http(.*?)\s|[^a-zA-Z0-9\s\.\,\!\"\'\-\p{Sc}]')
-    content = re.sub(rex, '', content)
+    content = re.sub(rex, ' ', content)
+    content = content.replace(' .', '.')  # Hmm.
+    content = clean_str(content)
 
     length = f"{len(content.split(' '))} words"
     return content, length
