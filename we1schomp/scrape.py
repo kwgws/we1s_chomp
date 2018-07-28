@@ -2,46 +2,52 @@
 """
 """
 
-# import re
 import logging
+from gettext import gettext as _
+
 import bleach
+
 from bs4 import BeautifulSoup
-from we1schomp import data
+from we1schomp.data import clean_str
 
 
-def scrape(sites, settings, browser):
+def find_content(articles, browser):
+    """
+    """
+
+    log = logging.getLogger(__name__)
+    log.info(_('we1schomp_log_scrapes_start_%d'), len(articles))
+
+    for article in articles:
+
+        browser.sleep()
+
+        content, length = get_content_from_url(
+            url=article['url'],
+            content_tag=article['content_tag'],
+            length_min=article['length_min'],
+            browser=browser)
+        article.update({'content': content, 'length': length})
+
+        yield article
+    
+    log.info(_('we1schomp_log_scrapes_done'))
+
+
+def get_content_from_url(url, content_tag, length_min, browser):
     """
     """
 
     log = logging.getLogger(__name__)
 
-    queries = data.load_from_json(settings['OUTPUT_PATH'])
-    log.info(f'Starting scrape, {len(queries)} URL(s) queued')
+    log.debug(_('we1schomp_log_scrape_start_%s_%s'), content_tag, length_min)
+    browser.go(url)
+    soup = BeautifulSoup(browser.source, 'html5lib')
+    content = str()
+    for tag in soup.find_all(content_tag):
+        if len(tag.text) > length_min:
+            content += bleach.clean(' '.join(tag.text))
 
-    for query in queries:
-
-        browser.sleep()
-
-        # Find the site configuration associated with the query.
-        site = next(s for s in sites if s['short_name'] == query['article']['pub_short'])
-
-        log.info(f"Scraping {query['article']['url']}")
-        browser.go(query['article']['url'])
-        soup = BeautifulSoup(browser.source, 'html5lib')
-
-        content = []
-        log.debug(f"Scraping <{site['content_tag']}> with {site['length_min']}+ chars")
-        for tag in soup.find_all(site['content_tag']):
-            if len(tag.text) > site['length_min']:
-                content.append(tag.text)
-        content = ' '.join(content)
-        log.debug(f'Pre-clean: {content}')
-        content = bleach.clean(content)
-        log.debug(f'Post-clean: {content}')
-        
-        query['article']['content'] = content
-        query['article']['length'] = f"{len(content.split(' '))} words"
-        data.save_to_json(query['article'], settings, query['filename'])
-    
-    log.info(f'Scrapes complete')
-    return [query['article'] for query in queries]
+    content = clean_str(content)
+    length = f"{len(content.split(' '))} words"
+    return content, length

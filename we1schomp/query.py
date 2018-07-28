@@ -3,47 +3,41 @@
 """
 
 import logging
+from gettext import gettext as _
+from uuid import uuid4
+
 from bs4 import BeautifulSoup
-from we1schomp import data
 
 
-def query(sites, settings, browser):
+def find_urls(sites, settings, browser):
     """
     """
 
     log = logging.getLogger(__name__)
 
-    count = 0
-    for site in sites:
-        count += len(site['terms'])
-    log.info(f'Running {count} queries from {len(sites)} sites')
+    if not sites:
+        count = 0
+        for site in sites:
+            count += len(site['terms'])
+        log.info(_('we1schomp_log_queries_start_%d_%d'), count, len(sites))
 
-    articles = []
     for site in sites:
         for term in site['terms']:
-            article_data = _scrape_from_google(
-                site=site,
-                term=term,
-                browser=browser
-            )
-            for article in article_data:
-                articles.append(article)
+            yield find_urls_from_google(site, term, settings, browser)
 
-    log.info('Queries complete')
-    return articles
+    log.info(_('we1schomp_log_queries_done'))
 
 
-def _scrape_from_google(site, term, browser):
+def find_urls_from_google(site, term, settings, browser):
     """
     """
 
     log = logging.getLogger(__name__)
 
-    log.info(f'Querying "{term}" at {site["url"]}')
+    log.info(_('we1schomp_log_query_start_%s_%s'), term, site['url'])
     query_string = site['query_string'].format(url=site['url'], term=term)
     browser.go(query_string)
 
-    articles = []
     while True:
 
         browser.sleep()
@@ -53,18 +47,16 @@ def _scrape_from_google(site, term, browser):
         for rc in soup.find_all('div', {'class': 'rc'}):
 
             link = rc.find('a')
-            href = str(link.get('href'))
+            url = str(link.get('href'))
 
-            # Drop results that include stop words. (Is there an easier way to
-            # do this?)
-            stop_flag = False
-            for stop in site['url_stops']:
-                if stop in href:
-                    stop_flag = True
-                    log.warn(f'Skipping {href} (Contains stopword "{stop}"")')
-                    break
-            if stop_flag:
-                continue
+            # Drop results that include stop words.
+            if [stop for stop in site['url_stops'] if stop in url] is not None:
+                log.warning(_('we1schomp_log_query_skip_%s_%s'), url)
+                continue                   
+
+            # Create metadata.
+            doc_id = uuid4()  # Use UUID4 library to get unique id.
+            pub_short = site['short_name']
 
             # Sometimes the link's URL gets mushed in with the text. (Why?)
             title = str(link.text).split('http')[0]
@@ -75,29 +67,29 @@ def _scrape_from_google(site, term, browser):
             try:
                 date = str(rc.find('span', {'class': 'f'}).text)
                 date = date.replace(' - ', '')
+                log.info(_('we1schomp_log_query_ok_%s'), url)
             except AttributeError:
                 date = 'N.D.'
-
+                log.warning(_('we1schomp_log_query_no_date_%s'), url)
+            
             article = {
+                'doc_id': doc_id,
+                'attachment_id': '',
+                'namespace': settings['NAMESPACE'],
+                'name': site['db_name'].format(pub_short, doc_id),
+                'metapatch': site['metapath'].format(pub_short),
                 'pub': site['name'],
                 'pub_short': site['short_name'],
                 'pub_url': site['url'],
                 'pub_date': date,
                 'title': title,
-                'url': href,
+                'url': url,
                 'content': '',
                 'length': '',
                 'search_term': term
             }
-            articles.append(article)
-
-            if date == 'N.D.':
-                log.warn(f'OK *N.D. {href}')
-            else:
-                log.info(f'OK {href}')
-
+            yield article
+                
         if not browser.click_on_id('pnnext'):
-            log.info('End of results')
+            log.info(_('we1schomp_log_query_next_page_%s'))
             break
-
-    return articles

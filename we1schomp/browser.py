@@ -2,11 +2,13 @@
 """
 """
 
-import os
 import atexit
-import random
 import logging
+import os
+import random
+from gettext import gettext as _
 from time import sleep
+
 from selenium import webdriver
 from selenium.common import exceptions
 
@@ -58,24 +60,21 @@ class Browser(object):
         """
         """
 
-        self._log.info(f'Initializing {self.BROWSER_TYPE}')
+        self._log.info(_('we1schomp_log_browser_start_%s'), self.BROWSER_TYPE)
 
         if self.BROWSER_TYPE == 'Chrome':
 
             opts = webdriver.ChromeOptions()
             opts.add_argument('--log-level=3')  # Suppress warnings.
             opts.add_argument('--incognito')
-            opts.add_experimental_option('prefs',{  # Disable images.
+            opts.add_experimental_option('prefs', {  # Disable images.
                 'profile.managed_default_content_settings.images': 2
             })
 
             driver_path = os.path.join(os.getcwd(), 'chromedriver.exe')
-            self._log.info(f'Using webdriver at {driver_path}')
+            self._log.info(_('we1schomp_log_webdriver_path_%s'), driver_path)
 
-            self._log.warn('Occasionally the program will hang here. If '
-                           'it does, try moving things forward by pressing the'
-                           '"Enter" key. If that doesn\'t work, you may have '
-                           'to restart and try again.')  # Bummer
+            print(_('we1schomp_selenium_pause_bug'))
 
             driver = webdriver.Chrome(
                 executable_path=driver_path,
@@ -88,17 +87,16 @@ class Browser(object):
             return driver
 
         # TODO: Support for all Selenium-compatible browsers.
-        raise NotImplementedError(
-            f'{self.BROWSER_TYPE} is not a supported browser type')
+        raise NotImplementedError(_('we1schomp_err_browser_not_supported'))
 
     def go(self, url):
         """
         """
         
         if self.WAIT_FOR_KEYPRESS:
-            input('Press "Enter" to continue...')
+            input(_('we1schomp_press_enter'))
 
-        self._log.info(f'{url}')
+        self._log.info(_('we1schomp_log_browser_url_%s'), url)
         return self._driver.get(url)
 
     def sleep(self, sleep_time=None):
@@ -108,7 +106,7 @@ class Browser(object):
         if not sleep_time:
             sleep_time = random.uniform(self.SLEEP_MIN, self.SLEEP_MAX)
 
-        self._log.info(f'Sleeping for {sleep_time:.02f} seconds')
+        self._log.info(_('we1schomp_log_browser_sleep_%.2f'), sleep_time)
         sleep(sleep_time)
 
     def captcha_check(self):
@@ -116,11 +114,11 @@ class Browser(object):
         """
 
         if '/sorry/' in self._driver.current_url:
-            self._log.error('CAPTCHA detected, waiting for human...')
-            self._log.warn('Sometimes you have to press "Enter" here after you finish.')
+            self._log.error(_('we1schomp_log_captcha_start'))
+            print(_('we1schomp_selenium_pause_bug'))
             while '/sorry/' in self._driver.current_url:
                 sleep(self.SANITY_SLEEP)
-            self._log.info('CAPTCHA cleared!')
+            self._log.info(_('we1schomp_log_captcha_done'))
 
     def click_on_id(self, tag_id):
         """
@@ -129,7 +127,7 @@ class Browser(object):
         try:
             item = self._driver.find_element_by_id(tag_id)
         except exceptions.NoSuchElementException:
-            self._log.debug(f'No element found with id {tag_id}')
+            self._log.debug(_('we1schomp_err_browser_tag_not_found_%s'), tag_id)
             return False
 
         item.click()
@@ -140,5 +138,5 @@ class Browser(object):
         """
         """
 
-        self._log.info(f'Closing {self.BROWSER_TYPE}')
+        self._log.info(_('we1schomp_log_browser_quit_%s'), self.BROWSER_TYPE)
         self._driver.quit()

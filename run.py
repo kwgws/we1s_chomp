@@ -2,46 +2,63 @@
 """
 """
 
-from time import sleep
 from argparse import ArgumentParser
-import we1schomp
-from we1schomp import config
+from gettext import gettext as _
+from time import sleep
+
+from we1schomp import config, data, query, scrape
+from we1schomp.browser import Browser
 
 
-def _main():
+def main():
     """
     """
 
-    print('\n\nWE1S Chomp, version Alpha 3')
-    print('by the WhatEvery1Says Team <http://we1s.ucsb.edu>\n')
-    sleep(3.0)
+    print(_('we1schomp_hello'))
+    sleep(2.0)
 
-    parser = ArgumentParser()
-    parser.add_argument(
-        '--settings-file', type=str, metavar='S',
-        help='Settings file to use (default: "./settings.ini")',
-        default='settings.ini'
-    )
-    parser.add_argument(
-        '--urls-only', action='store_true',
-        help='Only scrape Google, do not scrape individual results.'
-    )
-    parser.add_argument(
-        '--articles-only', action='store_true',
-        help='Only scrape individual results, do not scrape Google.'
-    )
-    args = parser.parse_args()
+    args = get_arguments()
 
     settings, sites = config.from_ini(args.settings_file)
-    browser = we1schomp.Browser('Chrome', settings)
-    if not args.articles_only:
-        we1schomp.query(sites, settings, browser)
-    if not args.urls_only:
-        we1schomp.scrape(sites, settings, browser)
-    browser.close()
+    browser = Browser('Chrome', settings)
+    articles = []
 
-    print('\nChomp complete. Delicious!\n\n')
+    # Part 1: URL scraping (from Google). Disable with --articles-only.
+    if not args.articles_only:
+        urls = query.find_urls(sites=sites, settings=settings, browser=browser)
+        for article in urls:
+            data.save_article_to_json(article=article, settings=settings)
+            articles.append(article)
+
+    # Part 2: Article scraping. Disable with --urls-only.
+    if not args.urls_only:
+        if not articles:
+            queries = data.load_articles_from_json(settings['OUTPUT_PATH'])
+        articles = scrape.find_content(articles=queries, browser=browser)
+        for article in articles:
+            data.save_article_to_json(article=article, settings=settings)
+
+    browser.close()
+    print(_('we1schomp_goodbye'))
+
+
+def get_arguments():
+    """
+    """
+
+    parser = ArgumentParser(description=_('we1schomp_description'))
+
+    parser.add_argument('--settings-file', type=str, 
+                        help=_('we1schomp_arg_settings_file'),
+                        default='settings.ini')
+    parser.add_argument('--urls-only', action='store_true',
+                        help=_('we1schomp_arg_urls_only'))
+    parser.add_argument('--articles-only', action='store_true',
+                        help=_('we1schomp_arg_articles_only'))
+
+    args = parser.parse_args()
+    return args
 
 
 if __name__ == '__main__':
-    _main()
+    main()
