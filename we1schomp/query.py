@@ -23,7 +23,8 @@ def find_urls(sites, settings, browser):
 
     for site in sites:
         for term in site['terms']:
-            yield find_urls_from_google(site, term, settings, browser)
+            for url in find_urls_from_google(site, term, settings, browser):
+                yield url
 
     log.info(_('we1schomp_log_queries_done'))
 
@@ -51,7 +52,7 @@ def find_urls_from_google(site, term, settings, browser):
 
             # Drop results that include stop words.
             if [stop for stop in site['url_stops'] if stop in url] is not None:
-                log.warning(_('we1schomp_log_query_skip_%s_%s'), url)
+                log.warning(_('we1schomp_log_query_skip_%s'), url)
                 continue                   
 
             # Create metadata.
@@ -91,5 +92,5 @@ def find_urls_from_google(site, term, settings, browser):
             yield article
                 
         if not browser.click_on_id('pnnext'):
-            log.info(_('we1schomp_log_query_next_page_%s'))
+            log.info(_('we1schomp_log_query_next_page'))
             break

@@ -25,8 +25,8 @@ def main():
 
     # Part 1: URL scraping (from Google). Disable with --articles-only.
     if not args.articles_only:
-        urls = query.find_urls(sites=sites, settings=settings, browser=browser)
-        for article in urls:
+        for article in query.find_urls(sites=sites, settings=settings, browser=browser):
+            print(article)
             data.save_article_to_json(article=article, settings=settings)
             articles.append(article)
 
