@@ -45,6 +45,9 @@ def get_content_from_url(url, content_tag, length_min, browser):
     log.debug(_('we1schomp_log_scrape_start_%s_%s'), content_tag, length_min)
     browser.go(url)
     soup = BeautifulSoup(browser.source, 'html5lib')
+    soup.script.extract()
+    soup.header.extract()
+    soup.footer.extract()
 
     content = str()
     for tag in soup.find_all(content_tag):

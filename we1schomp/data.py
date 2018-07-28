@@ -128,10 +128,7 @@ def clean_str(dirty_string):
     # Ideally we shouldn't need this since all the content is being handled
     # "safely," but the LexisNexis import script does it, so we'll do it too
     # in case some other part of the process is expecting ASCII-only text.
-    # It also has the handy side-effect of compacting extra whitespace!
     ascii_string = unidecode(dirty_string)
-    ascii_string = ''.join([x for x in ascii_string if x in string.printable])
-    ascii_string = ' '.join(ascii_string.split())
 
     # Regex processing. Experimental!
     # This looks for:
@@ -143,6 +140,8 @@ def clean_str(dirty_string):
     ascii_string = re.sub(rex, ' ', ascii_string)
 
     # This could probably be handled with a better regex string.
+    ascii_string = ''.join([x for x in ascii_string if x in string.printable])
+    ascii_string = ' '.join(ascii_string.split())
     ascii_string = ascii_string.replace(' .', '.')
 
     return ascii_string
