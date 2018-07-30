@@ -109,3 +109,4 @@ output/
 *.bat
 *.rc
 *.log
+local.ini

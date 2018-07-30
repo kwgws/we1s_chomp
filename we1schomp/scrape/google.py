@@ -2,8 +2,12 @@
 """
 """
 
+import random
+import time
 from gettext import gettext as _
 from logging import getLogger
+from urllib.error import HTTPError
+from urllib.request import urlopen
 from uuid import uuid4
 
 from bs4 import BeautifulSoup
@@ -125,8 +129,13 @@ def get_content(site, config, browser):
             continue
         
         browser.sleep()
-        browser.go(article['url'])
-        soup = BeautifulSoup(browser.source, 'html5lib')
+
+        try:
+            with urlopen(article['url']) as result:
+                soup = BeautifulSoup(result.read(), 'html5lib')
+        except HTTPError:
+            browser.go(article['url'])
+            soup = BeautifulSoup(browser.source, 'html5lib')
         
         # Start by getting rid of JavaScript--Bleach will "neuter" this but
         # has trouble removing it.

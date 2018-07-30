@@ -36,10 +36,13 @@ def run():
     time.sleep(2.0)
 
     config, sites = settings.from_ini(args.settings_file)
-    browser = Browser('Chrome', config)
+    browser = Browser('Chrome', settings=config)
+    time.sleep(3.0)
 
     # Start scraping!
     for site in sites:
+
+        print(_('\nScraping %s.' % site['name']))
 
         # Do WordPress scrapes.
         if (config['WORDPRESS_ENABLE'] and not args.no_wordpress

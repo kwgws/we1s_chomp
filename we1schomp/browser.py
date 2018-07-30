@@ -113,6 +113,7 @@ class Browser:
             while '/sorry/' in self._driver.current_url:
                 sleep(self.SANITY_SLEEP)
             self._log.info(_('Ok!'))
+            self.sleep()
 
     def click_on_id(self, tag_id):
         """
