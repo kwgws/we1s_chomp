@@ -2,8 +2,8 @@
 """
 """
 
-from logging import getLogger
 from gettext import gettext as _
+from logging import getLogger
 
 from bs4 import BeautifulSoup
 

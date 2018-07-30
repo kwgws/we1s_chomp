@@ -1,7 +1,7 @@
+# -*- coding: utf-8 -*-
 """
 """
 
-# -*- coding: utf-8 -*-
 from gettext import gettext as _
 from logging import getLogger
 

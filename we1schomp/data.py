@@ -13,7 +13,6 @@ from logging import getLogger
 from uuid import uuid4
 
 import bleach
-
 import regex as re
 from unidecode import unidecode
 
