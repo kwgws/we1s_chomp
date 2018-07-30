@@ -10,14 +10,13 @@ import sys
 import time
 from gettext import gettext as _
 from logging import getLogger
-from uuid import uuid4
 
 import bleach
 import regex as re
 from unidecode import unidecode
 
 
-def load_article_list_from_json(path, no_skip=False):
+def load_articles(path, no_skip=False):
     """
     """
 
@@ -30,8 +29,8 @@ def load_article_list_from_json(path, no_skip=False):
 
         # If a file already has stuff in the "content" key, that implies
         # we've already scraped it, so we can safely skip it here.
-        if not no_skip and json_data['content'] != '':
-            log.warning(_('log file load %s'), json_file)
+        if json_data['content'] != '' and not no_skip:
+            log.warning(_('log file skip %s'), json_file)
             continue
 
         # Keep track of how many files we've loaded so we can report how many
@@ -40,7 +39,7 @@ def load_article_list_from_json(path, no_skip=False):
         count += 1
         articles.append(json_data)
 
-    log.info(_('log search done %s %s'), count, len(articles) - count)
+    log.info(_('log search done %s skipped %s'), count, len(articles) - count)
     return articles
 
 
@@ -57,60 +56,12 @@ def load_json_files_from_path(path):
         yield json_data, json_file
 
 
-def update_article(articles, config, overwrite=True, **kwargs):
+def save_article(article, config):
     """
     """
 
     log = getLogger(__name__)
-
-    name = config['DB_NAME'].format(
-        site=kwargs['site']['short_name'], 
-        term=kwargs['term'], slug=kwargs['name'])
-    metapath = config['METAPATH'].format(site=kwargs['site']['short_name'])
-
-    try:  # Are we updating an old entry or starting a new one?
-        article = next(a for a in articles if a['name'] == name)
-
-        if not overwrite and article['content'] != '':
-            log.info(_('log skipping article %s'), article['name'])
-            return article
-
-        log.info(_('li updating article %s'), article['name'])
-
-    except StopIteration:
-        article = {
-            'doc_id': str(uuid4()),
-            'attachment_id': '',
-            'namespace': config['NAMESPACE'],
-            'name': name,
-            'metapath': metapath,
-            'pub': kwargs['site']['name'],
-            'pub_short': kwargs['site']['short_name'],
-        }
-        articles.append(article)
-        log.info(_('li creating new article %s'), article['name'])
-    
-    content = clean_string(kwargs['content'])
-    length = f"{len(content.split(' '))} words" if content != '' else ''
-    article.update({
-        'title': kwargs['title'],
-        'url': kwargs['url'],
-        'content': content,
-        'length': length,
-        'search_term': kwargs['term']
-    })
-
-    return article
-
-
-def save_article_to_json(article, config):
-    """
-    """
-
-    log = getLogger(__name__)
-
     path = config['OUTPUT_PATH']
-    log.info(_('log saving article to path %s %s'), article['name'], path)
 
     # Update existing files first.
     filename = ''
@@ -118,6 +69,7 @@ def save_article_to_json(article, config):
         if json_data['doc_id'] == article['doc_id']:
             filename = json_file
             log.info(_('log overwriting file %s'), filename)
+            break
 
     # Otherwise make a new file.
     if filename == '':
@@ -136,7 +88,7 @@ def save_article_to_json(article, config):
             index='{index}',
             timestamp=timestamp,
             site=article['pub_short'],
-            term=term
+            term=slugify(term)
         )
 
         # Increment filenames.

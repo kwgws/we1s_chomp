@@ -66,9 +66,6 @@ class Browser:
             opts = webdriver.ChromeOptions()
             opts.add_argument('--log-level=3')  # Suppress warnings.
             opts.add_argument('--incognito')
-            opts.add_experimental_option('prefs', {  # Disable images.
-                'profile.managed_default_content_settings.images': 2
-            })
 
             driver_path = os.path.join(os.getcwd(), 'chromedriver.exe')
             self._log.info(_('log webdriver path %s'), driver_path)
