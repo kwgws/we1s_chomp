@@ -40,7 +40,7 @@ def get_urls(site, config, browser):
             for rc in soup.find_all('div', {'class': 'rc'}):
 
                 link = rc.find('a')
-                url = str(link.get('href'))
+                url = str(link.get('href')).lower()
 
                 # Drop results that include stop words.
                 stop_flag = False
@@ -116,7 +116,7 @@ def get_content(site, config, browser):
         # Drop results that include stop words.
         stop_flag = False
         for stop in site['google_stopwords']:
-            if stop in article['url']:
+            if stop in article['url'].lower():
                 log.warning(
                     _('Skipping (stopword "%s"): %s'), stop, article['url'])
                 stop_flag = True
