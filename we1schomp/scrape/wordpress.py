@@ -26,14 +26,14 @@ def check_for_api(site, config):
     if (not site['wordpress_enable'] or
             (not site['wordpress_enable_pages']
              and not site['wordpress_enable_posts'])):
-        log.info(_('log wordpress scrape disabled %s'), site['name'])
+        log.warning(_('log wordpress scrape disabled %s'), site['name'])
         return False
 
     # Check for API access.
     with urlopen(wp_url) as result:
         result = json.loads(result.read())
     if result['namespace'] != 'wp/v2':
-        log.info(_('log wordpress no api %s'), site['name'])
+        log.warning(_('log wordpress no api %s'), site['name'])
         return False
     
     log.info(_('log wordpress api found %s'), site['name'])
@@ -58,7 +58,7 @@ def get_articles(site, config):
         # Sleep for a bit, as a courtesy.
         sleep_time = random.uniform(
             config['SLEEP_MIN'], config['SLEEP_MAX'])
-        log.info(_('log sleep %.2f'), sleep_time)
+        log.debug(_('log sleep %.2f'), sleep_time)
         time.sleep(sleep_time)
 
         # Collect WordPress pages.
@@ -74,7 +74,7 @@ def get_articles(site, config):
         # TODO: Move this into a function
         sleep_time = random.uniform(
             config['SLEEP_MIN'], config['SLEEP_MAX'])
-        log.info(_('log sleep %.2f'), sleep_time)
+        log.debug(_('log sleep %.2f'), sleep_time)
         time.sleep(sleep_time)
 
         # Collect WordPress posts.

@@ -68,7 +68,7 @@ class Browser:
             opts.add_argument('--incognito')
 
             driver_path = os.path.join(os.getcwd(), 'chromedriver.exe')
-            self._log.info(_('log webdriver path %s'), driver_path)
+            self._log.debug(_('log webdriver path %s'), driver_path)
 
             print(_('selenium pause bug message'))
 
@@ -102,7 +102,7 @@ class Browser:
         if not sleep_time:
             sleep_time = random.uniform(self.SLEEP_MIN, self.SLEEP_MAX)
 
-        self._log.info(_('log sleep %.2f'), sleep_time)
+        self._log.debug(_('log sleep %.2f'), sleep_time)
         sleep(sleep_time)
 
     def captcha_check(self):

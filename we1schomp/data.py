@@ -24,13 +24,13 @@ def load_articles(path, no_skip=False):
     articles = []
     count = 0
 
-    log.info(_('log search path %s'), path)
+    log.debug(_('log search path %s'), path)
     for json_data, json_file in load_json_files_from_path(path):
 
         # If a file already has stuff in the "content" key, that implies
         # we've already scraped it, so we can safely skip it here.
         if json_data['content'] != '' and not no_skip:
-            log.warning(_('log file skip %s'), json_file)
+            log.debug(_('log file skip %s'), json_file)
             continue
 
         # Keep track of how many files we've loaded so we can report how many
@@ -39,7 +39,7 @@ def load_articles(path, no_skip=False):
         count += 1
         articles.append(json_data)
 
-    log.info(_('log search done %s skipped %s'), count, len(articles) - count)
+    log.debug(_('log search done %s skipped %s'), count, len(articles) - count)
     return articles
 
 

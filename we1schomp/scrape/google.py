@@ -87,7 +87,7 @@ def get_urls(site, config, browser):
 
             browser.sleep()
             if browser.click_on_id('pnnext'):
-                log.info(_('log google next page'))
+                log.debug(_('log google next page'))
             else:
                 log.info(_('log google no next page'))
                 break
