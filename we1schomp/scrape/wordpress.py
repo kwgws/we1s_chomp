@@ -112,7 +112,7 @@ def get_articles(site, config):
             'metapath': config['METAPATH'].format(site=site['short_name']),
             'pub': site['name'],
             'pub_short': site['short_name'],
-            'title': json_result['title']['rendered'],
+            'title': data.clean_string(json_result['title']['rendered']),
             'url': json_result['link'],
             'content': content,
             'length': f"{len(content.split(' '))} words",

@@ -54,7 +54,7 @@ def get_urls(site, config, browser):
                     continue
 
                 # Sometimes the link's URL gets mushed in with the text.
-                title = str(link.text).split('http')[0]
+                title = data.clean_string(str(link.text).split('http')[0])
 
                 # Parse date from result. This is much more consistant than
                 # doing it from the articles themselves, but it can be a little
@@ -112,6 +112,17 @@ def get_content(site, config, browser):
         log.info(_('Beginning scrape of %s.'), site['name'])
 
     for article in articles:
+
+        # Drop results that include stop words.
+        stop_flag = False
+        for stop in site['google_stopwords']:
+            if stop in article['url']:
+                log.warning(
+                    _('Skipping (stopword "%s"): %s'), stop, article['url'])
+                stop_flag = True
+                break
+        if stop_flag:
+            continue
         
         browser.sleep()
         browser.go(article['url'])
