@@ -22,7 +22,7 @@ def get_articles(sites, config, articles=None):
 
     log.info(_('log wordpress scrape start'))
     wp_sites = []
-    for site in sites:
+    for site in [s for s in sites if s['wordpress_enable']]:
         
         # Perform the API query.
         log.debug(_('log wordpress query start %s'), site['name'])

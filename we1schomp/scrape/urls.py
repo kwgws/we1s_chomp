@@ -25,6 +25,9 @@ def get_articles(sites, config, browser, articles=None):
         # settings for it.
         site = next(s for s in sites 
                     if s['short_name'] == article['pub_short'])
+        if not site['url_enable']:
+            log.info(_('log url scrape disabled site %s'), site['name'])
+            continue
         
         log.info(_('log urls query %s %s'), article['url'], site['name'])
         browser.sleep()

@@ -52,18 +52,11 @@ def get_settings(config):
                  config.getfloat('browserSleepMax')]),
         
         # Scrape settings
-        'WORDPRESS_ENABLE_SCRAPE':
-            config.getboolean('wpEnable'),
         'WORDPRESS_API_URL': config['wpApiUrl'],
         'WORDPRESS_PAGES_QUERY_URL': config['wpPagesQueryUrl'],
         'WORDPRESS_POSTS_QUERY_URL': config['wpPostsQueryUrl'],
 
-        'GOOGLE_ENABLE_SCRAPE':
-            config.getboolean('googleEnable'),
         'GOOGLE_QUERY_URL': config['googleQueryUrl'],
-
-        'DIRECT_ENABLE_SCRAPE':
-            config.getboolean('urlScrapeEnable')
     }
 
     return settings
@@ -98,11 +91,14 @@ def get_sites(config):
             'terms': terms, 'url': url,
 
             # Wordpress scrape settings
+            'wordpress_enable': config.getboolean('wpEnable'),
             'wordpress_enable_pages': site.getboolean('wpGetPages'),
             'wordpress_enable_posts': site.getboolean('wpGetPosts'),
 
             # Google scrape settings
+            'google_enable': config.getboolean('googleEnable'),
             'google_stopwords': google_stopwords,
+            'url_enable': config.getboolean('urlScrapeEnable'),
             'content_tag': site['urlScrapeContentTag'],
             'content_length_min': site.getint('urlScrapeContentLengthMin')
         }

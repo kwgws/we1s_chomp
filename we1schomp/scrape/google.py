@@ -19,7 +19,7 @@ def get_articles(sites, config, browser, articles=None):
         articles = data.load_article_list_from_json(config['OUTPUT_PATH'])       
 
     log.info(_('log google start'))
-    for site in sites:
+    for site in [s for s in sites if s['google_enable']]:
         for term in site['terms']:
 
             log.info(_('log google query %s %s'), term, site['url'])
