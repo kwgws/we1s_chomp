@@ -6,7 +6,7 @@ import random
 import time
 from gettext import gettext as _
 from logging import getLogger
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 from uuid import uuid4
 
@@ -133,7 +133,8 @@ def get_content(site, config, browser):
         try:
             with urlopen(article['url']) as result:
                 soup = BeautifulSoup(result.read(), 'html5lib')
-        except HTTPError:
+        except (HTTPError, URLError) as e:
+            log.debug(_('URLLib Error: %s'), e)
             browser.go(article['url'])
             soup = BeautifulSoup(browser.source, 'html5lib')
         

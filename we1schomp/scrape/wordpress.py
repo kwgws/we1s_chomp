@@ -7,7 +7,7 @@ import random
 import time
 from gettext import gettext as _
 from logging import getLogger
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 from uuid import uuid4
 
@@ -37,7 +37,8 @@ def check_for_api(site, config):
         if result['namespace'] != 'wp/v2':
             log.warning(_('Skipping (not found): %s'), wp_url)
             return False
-    except HTTPError:
+    except (HTTPError, URLError) as e:
+        log.debug(_('URLLib Error: %s'), e)
         log.warning(_('Skipping (not found): %s'), wp_url)
         return False
 
