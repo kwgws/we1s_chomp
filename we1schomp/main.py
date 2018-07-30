@@ -5,8 +5,9 @@
 from gettext import gettext as _
 from logging import getLogger
 
-from we1schomp import data, scrape
+from we1schomp import data
 from we1schomp.browser import Browser
+from we1schomp.scrape import google, urls, wordpress
 
 
 def scrape_all(config, sites, articles=None, browser=None):
@@ -31,21 +32,21 @@ def scrape_all(config, sites, articles=None, browser=None):
 
     # Pass WordPress articles to the WordPress scraper.
     if config['WORDPRESS_ENABLE_SCRAPE']:
-        for article in scrape.wordpress.get_articles(
+        for article in wordpress.get_articles(
                 sites=sites, browser=browser,
                 config=config, articles=articles):
             data.save_article_to_json(article, config)
     
     # Otherwise get metadata from Google...
     if config['GOOGLE_ENABLE_SCRAPE']:
-        for article in scrape.google.get_articles(
+        for article in google.get_articles(
                 sites=sites, browser=browser,
                 config=config, articles=articles):
             data.save_article_to_json(article, config)
 
     # ...and then parse the content directly.
     if config['DIRECT_ENABLE_SCRAPE']:
-        for article in scrape.urls.get_articles(
+        for article in urls.get_articles(
                 sites=sites, browser=browser,
                 config=config, articles=articles):
             data.save_article_to_json(article, config)
