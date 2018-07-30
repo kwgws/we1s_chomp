@@ -1,9 +1,0 @@
-{
-    "cSpell.words": [
-        "http",
-        "infile",
-        "schomp",
-        "we"
-    ],
-    "python.pythonPath": "${workspaceFolder}\\venv\\Scripts\\python.exe"
-}
