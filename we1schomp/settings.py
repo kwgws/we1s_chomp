@@ -29,13 +29,6 @@ def from_ini(filename):
     return settings, sites
 
 
-def to_ini(config, sites):
-    """
-    """
-
-    
-
-
 def get_settings(config):
     """
     """
