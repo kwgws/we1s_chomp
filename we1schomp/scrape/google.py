@@ -89,7 +89,7 @@ def get_urls(site, config, browser):
 
             browser.sleep()
             if browser.click_on_id('pnnext'):
-                log.debug(_('Going to next page.'))
+                log.info(_('Going to next page.'))
             else:
                 log.info(_('No more result pages.'))
                 break
@@ -112,19 +112,26 @@ def get_content(site, config, browser):
         log.info(_('Beginning scrape of %s.'), site['name'])
 
     for article in articles:
-       
+        
+        browser.sleep()
         browser.go(article['url'])
         soup = BeautifulSoup(browser.source, 'html5lib')
         
         # Start by getting rid of JavaScript--Bleach will "neuter" this but
         # has trouble removing it.
-        soup.script.extract()
+        try:
+            soup.script.extract()
+        except AttributeError:
+            log.debug(_('No <script> tags found.'))
 
         # Now focus in on the content. We can't guarantee they've used the
         # <article> tag, but it's a safe bet they won't put an article in the
         # <header> or <footer>.
-        soup.header.extract()
-        soup.footer.extract()
+        try:
+            soup.header.extract()
+            soup.footer.extract()
+        except AttributeError:
+            log.debug(_('No <header>/<footer> tags found.'))
 
         # Finally, take all the content tags, default <p>, and mush together
         # any that are over a certain length of characters. This can be very

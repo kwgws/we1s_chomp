@@ -7,6 +7,7 @@ import random
 import time
 from gettext import gettext as _
 from logging import getLogger
+from urllib.error import HTTPError
 from urllib.request import urlopen
 from uuid import uuid4
 
@@ -22,7 +23,7 @@ def check_for_api(site, config):
               + config['WORDPRESS_API_URL'])
 
     # Check for internal settings.
-    log.debug(_('Testing for WordPress API.'))
+    log.info(_('Testing for WordPress API...'))
     if (not site['wordpress_enable'] or
             (not site['wordpress_enable_pages']
              and not site['wordpress_enable_posts'])):
@@ -30,10 +31,14 @@ def check_for_api(site, config):
         return False
 
     # Check for API access.
-    with urlopen(wp_url) as result:
-        result = json.loads(result.read())
-    if result['namespace'] != 'wp/v2':
-        log.warning(_('Skipping (no API): %s'), site['name'])
+    try:
+        with urlopen(wp_url) as result:
+            result = json.loads(result.read())
+        if result['namespace'] != 'wp/v2':
+            log.warning(_('Skipping (not found): %s'), wp_url)
+            return False
+    except HTTPError:
+        log.warning(_('Skipping (not found): %s'), wp_url)
         return False
 
     return True
@@ -46,7 +51,7 @@ def get_articles(site, config):
     log = getLogger(__name__)
 
     # Perform the API query.
-    log.debug(_('Scraping %s from WordPress API.'), site['name'])
+    log.info(_('Scraping %s from WordPress API.'), site['name'])
     wp_url = ('http://' + site['url'].strip('/')
               + config['WORDPRESS_API_URL'])
     scrape_results = []
