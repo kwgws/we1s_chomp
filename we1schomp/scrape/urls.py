@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
 """
 """
 
+# -*- coding: utf-8 -*-
 from gettext import gettext as _
 from logging import getLogger
 
 from bs4 import BeautifulSoup
+
 from we1schomp import data
 
 
