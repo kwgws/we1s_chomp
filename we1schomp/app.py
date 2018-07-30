@@ -53,7 +53,7 @@ def run():
         
         # Do Google scrapes.
         else:
-            if (config['GOOGLE_ENABLE'] and site['wordpress_enable']
+            if (config['GOOGLE_ENABLE'] and site['google_enable']
                   and not args.no_google_search):
                 for article in google.get_urls(site, config, browser):
                     data.save_article(article, config)
