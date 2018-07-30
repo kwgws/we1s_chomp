@@ -20,8 +20,6 @@ cd we1schomp
 pip install -r requirements.txt
 ```
 
- **IMPORTANT:** WE1S Chomp requires **Python 3.6 or later**, available [here](https://www.python.org/), and the **Selenium Chrome Driver**, (included).
-
 ## Set-Up
 
 WE1S Chomp works in two stages. First it collects lists of relevant URLs from Google, then it goes back and collects article content from those URLs. You can control all these operations from the ```settings.ini``` file.
