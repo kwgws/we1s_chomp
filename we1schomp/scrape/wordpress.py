@@ -27,7 +27,8 @@ def get_articles(sites, config, browser, articles=None):
                 and not site['wordpress_enable_posts']):
             log.info(_('log wordpress scrape disabled %s'), site['name'])
 
-        wp_url = site['url'].strip('/') + config['WORDPRESS_API_URL']
+        wp_url = ('http://' + site['url'].strip('/')
+                  + config['WORDPRESS_API_URL'])
         with urlopen(wp_url) as result:
             result = json.loads(result.read())
         if result['namespace'] != 'wp/v2':
@@ -39,14 +40,14 @@ def get_articles(sites, config, browser, articles=None):
         scrape_results = []
         for term in site['terms']:
 
-            if site['enable_wordpress_pages']:
+            if site['wordpress_enable_pages']:
                 browser.sleep()
                 wp_query = config['WORDPRESS_PAGES_QUERY_URL'].format(
                     api_url=wp_url, terms='+'.join(term.split(' ')))
                 browser.go(wp_query)
                 scrape_results += json.loads(browser.source), term
 
-            if site['enable_wordpress_posts']:
+            if site['wordpress_enable_posts']:
                 browser.sleep()
                 wp_query = config['WORDPRESS_POSTS_QUERY_URL'].format(
                     api_url=wp_url, terms='+'.join(term.split(' ')))
