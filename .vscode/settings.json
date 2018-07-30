@@ -1,8 +1,8 @@
 {
     "cSpell.words": [
-        "mday",
-        "pnnext",
+        "http",
         "schomp",
         "we"
-    ]
+    ],
+    "python.pythonPath": "${workspaceFolder}\\venv\\Scripts\\python.exe"
 }

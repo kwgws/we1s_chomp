@@ -2,128 +2,166 @@
 """
 """
 
+import html
 import json
-import logging
 import os
 import string
 import sys
+import time
 from gettext import gettext as _
-from time import localtime
+from logging import getLogger
+from uuid import uuid4
+
+import bleach
 
 import regex as re
 from unidecode import unidecode
 
 
-def save_article_to_json(article, settings):
+def load_article_list_from_json(path, no_skip=False):
     """
     """
 
-    log = logging.getLogger(__name__)
-
-    path = settings['OUTPUT_PATH']
-    filename = get_filename(path, article, settings)
-    with open(filename, 'w', encoding='utf-8') as outfile:
-        json.dump(article, outfile, ensure_ascii=False, indent=2)
-
-    log.info(_('we1schomp_log_article_save_%s'), filename)
-
-
-def get_filename(path, article, settings):
-    """
-    """
-
-    log = logging.getLogger(__name__)
-
-    # Update queried files with content.
-    for json_file, json_data in find_json_files_in_path(path):
-        if json_data['doc_id'] == article['doc_id']:
-            filename = json_file
-            log.debug(_('we1schomp_log_filename_found_%s'), filename)
-            return filename
-
-    # Get a timestamp for use in the filename. This is the same format used
-    # for zip files on the Mirrormask server.
-    now = localtime()
-    timestamp = '{y}{mo:02d}{d:02d}'.format(
-        y=now.tm_year, mo=now.tm_mon, d=now.tm_mday
-    )
-
-    # We want to store the search term in the filename if we can.
-    # There might be a better way to do this--especially if we eventually
-    # have to consider boolean search strings.
-    term = clean_str(article['search_term']).replace(' ', '-')
-
-    filename = settings['OUTPUT_FILENAME'].format(
-        index='{index}',
-        timestamp=timestamp,
-        site=article['pub_short'],
-        term=term
-    )
-
-    # Increment filenames.
-    for x in range(sys.maxsize):
-        temp_filename = os.path.join(path, filename.format(index=x))
-        if not os.path.exists(temp_filename):
-            filename = temp_filename
-            break
-
-    log.debug(_('we1schomp_log_filename_new_%s'), filename)
-    return filename
-
-
-def load_articles_from_json(path, no_skip=False):
-    """
-    """
-
-    log = logging.getLogger(__name__)
-
-    log.info(_('we1schomp_log_file_search_start_%s'), path)
+    log = getLogger(__name__)
     articles = []
     count = 0
 
-    for json_file, json_data in find_json_files_in_path(path):
+    log.info(_('log search path %s'), path)
+    for json_data, json_file in load_json_files_from_path(path):
 
         # If a file already has stuff in the "content" key, that implies
-        # we've already scraped it, so we can safely skip it.
+        # we've already scraped it, so we can safely skip it here.
         if not no_skip and json_data['content'] != '':
-            log.warning(_('we1schomp_log_file_skip_%s'), json_file)
+            log.warning(_('log file load %s'), json_file)
             continue
 
-        log.warning(_('we1schomp_log_file_skip_%s'), json_file)
+        # Keep track of how many files we've loaded so we can report how many
+        # we've skipped.
+        log.info(_('log file load %s'), json_file)
         count += 1
         articles.append(json_data)
 
-    log.info(_('we1schomp_log_file_search_done_%d_%d'), count, len(articles) - count)
+    log.info(_('log search done %s %s'), count, len(articles) - count)
     return articles
 
 
-def find_json_files_in_path(path):
+def load_json_files_from_path(path):
     """
     """
 
-    for filename in [f for f in os.listdir(path) if f.endswith('.json')]:
+    for json_file in [f for f in os.listdir(path) if f.endswith('.json')]:
 
-        filename = os.path.join(path, filename)
+        filename = os.path.join(path, json_file)
         with open(filename, 'r', encoding='utf-8') as json_file:
             json_data = json.load(json_file)
 
-        yield filename, json_data
+        yield json_data, json_file
 
 
-def get_site_from_article(article, sites):
+def update_article(articles, config, overwrite=True, **kwargs):
     """
     """
 
-    for site in sites:
-        if article['pub_short'] == site['short_name']:
-            return site
+    log = getLogger(__name__)
+
+    name = config['DB_NAME'].format(
+        site=kwargs['site']['short_name'], 
+        term=kwargs['term'], slug=kwargs['name'])
+    metapath = config['METAPATH'].format(
+        site=kwargs['site']['short_name'],
+        term=kwargs['term'], slug=kwargs['name'])
+
+    try:  # Are we updating an old entry or starting a new one?
+        article = next(a for a in articles if a['name'] == name)
+
+        if not overwrite:
+            log.info(_('log skipping article %s'), article['name'])
+            return article
+
+        log.info(_('li updating article %s'), article['name'])
+
+    except StopIteration:
+        article = {
+            'doc_id': uuid4(),
+            'attachment_id': '',
+            'namespace': config['NAMESPACE'],
+            'name': name,
+            'metapath': metapath,
+            'pub': kwargs['site']['name'],
+            'pub_short': kwargs['site']['short_name'],
+        }
+        articles.append(article)
+        log.info(_('li creating new article %s'), article['name'])
     
-    return None
+    content = clean_string(kwargs['content'])
+    length = f"{len(content.split(' '))} words" if content != '' else ''
+    article.update({
+        'title': kwargs['title'],
+        'url': kwargs['url'],
+        'content': content,
+        'length': length,
+        'search_term': kwargs['term']
+    })
+
+    return article
 
 
-def clean_str(dirty_string):
+def save_article_to_json(article, config):
     """
     """
+
+    log = getLogger(__name__)
+
+    path = config['OUTPUT_PATH']
+    log.info(_('log saving article to path %s %s'), article['name'], path)
+
+    # Update existing files first.
+    for json_file, json_data in load_json_files_from_path(path):
+        if json_data['doc_id'] == article['doc_id']:
+            filename = json_file
+            log.info(_('log overwriting file %s'), filename)
+
+    # Otherwise make a new file.
+    if not filename:
+
+        # Use Mirrormask timestamp format.
+        now = time.localtime()
+        timestamp = '{y}{m:02d}{d:02d}'.format(
+            y=now.tm_year, m=now.tm_mon, d=now.tm_mday)
+
+        # We want to store the search term in the filename if possible.
+        # There might be a better way to do this--especially if we eventually
+        # have to consider complex boolean search strings.
+        term = slugify(article['search_term'])
+
+        filename = config['OUTPUT_FILENAME'].format(
+            index='{index}',
+            timestamp=timestamp,
+            site=article['pub_short'],
+            term=term
+        )
+
+        # Increment filenames.
+        for x in range(sys.maxsize):
+            temp_filename = filename.format(index=x)
+            if not os.path.exists(os.path.join(path, temp_filename)):
+                filename = temp_filename
+                break
+        
+        log.info(_('log saving new file %s'), filename)
+
+    filename = os.path.join(path, filename)
+    with open(filename, 'w', encoding='utf-8') as outfile:
+        json.dump(article, outfile, ensure_ascii=False, indent=2)
+
+
+def clean_string(dirty_string, regex_string=None):
+    """
+    """
+
+    # Start by Bleaching out the HTML.
+    dirty_string = bleach.clean(dirty_string, tags=[], strip=True)
+    dirty_string = html.unescape(dirty_string)  # Get rid of &lt;, etc.
 
     # Ideally we shouldn't need this since all the content is being handled
     # "safely," but the LexisNexis import script does it, so we'll do it too
@@ -136,12 +174,21 @@ def clean_str(dirty_string):
     #   topic modelling.
     # - Irregular punctuation, i.e. punctuation left over from formatting
     #   or HTML symbols that Bleach missed.
-    rex = re.compile(r'http(.*?)\s|[^a-zA-Z0-9\s\.\,\!\"\'\-\:\;\p{Sc}]')
-    ascii_string = re.sub(rex, ' ', ascii_string)
+    if not regex_string:
+        regex_string = r'http(.*?)\s|[^a-zA-Z0-9\s\.\,\!\"\'\-\:\;\p{Sc}]'
+    ascii_string = re.sub(re.compile(regex_string), ' ', ascii_string)
 
-    # This could probably be handled with a better regex string.
     ascii_string = ''.join([x for x in ascii_string if x in string.printable])
     ascii_string = ' '.join(ascii_string.split())
-    ascii_string = ascii_string.replace(' .', '.')
+    ascii_string = ascii_string.replace(' .', '.')  # ??
 
     return ascii_string
+
+
+def slugify(title_string):
+    """
+    """
+
+    title_string = clean_string(title_string, r'[^a-zA-Z0-9]')
+    title_string = title_string.replace(' ', '_').lower()
+    return title_string
