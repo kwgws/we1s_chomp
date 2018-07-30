@@ -48,14 +48,14 @@ Every website you query *must* have a section, and every section *must* have a U
 Once you have configured ```settings.ini```, you can begin collecting URLs.
 
 ```bash
-python run.py --urls_only
+python run.py
 ```
 
 Eventually, Google will become suspicious and give you a CAPTCHA to complete to prove that you're not a bot. Once you solve it the query should resume.
 
 ## Article Collection
 
-Once you have a set of URL files in place, you can begin collecting articles.
+Once you have a set of URL files in place, you can begin collecting articles. If you have URLs already and want to bypass Google, you can use the following launch option:
 
 ```bash
 python run.py --no-google-search
