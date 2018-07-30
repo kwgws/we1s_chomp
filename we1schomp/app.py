@@ -42,13 +42,14 @@ def run():
     for site in sites:
 
         # Do WordPress scrapes.
-        if not args.no_wordpress and wordpress.check_for_api(site, config):
+        if (config['WORDPRESS_ENABLE'] and not args.no_wordpress
+              and wordpress.check_for_api(site, config)):
             for article in wordpress.get_articles(site, config):
                 data.save_article(article, config)
         
         # Do Google scrapes.
         else:
-            if not args.no_google_search:
+            if config['GOOGLE_ENABLE'] and not args.no_google_search:
                 for article in google.get_urls(site, config, browser):
                     data.save_article(article, config)
             for article in google.get_content(site, config, browser):

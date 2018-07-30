@@ -53,9 +53,11 @@ def get_settings(config):
                  config.getfloat('browserSleepMax')]),
         
         # Scrape settings
+        'WORDPRESS_ENABLE': config['wpEnable'],
         'WORDPRESS_API_URL': config['wpApiUrl'],
         'WORDPRESS_PAGES_QUERY_URL': config['wpPagesQueryUrl'],
         'WORDPRESS_POSTS_QUERY_URL': config['wpPostsQueryUrl'],
+        'GOOGLE_ENABLE': config['googleEnable'],
         'GOOGLE_QUERY_URL': config['googleQueryUrl'],
     }
 
