@@ -59,7 +59,7 @@ class Browser:
         """
         """
 
-        self._log.info(_('log browser start %s'), self.BROWSER_TYPE)
+        self._log.info(_('Starting %s.'), self.BROWSER_TYPE)
 
         if self.BROWSER_TYPE == 'Chrome':
 
@@ -68,9 +68,7 @@ class Browser:
             opts.add_argument('--incognito')
 
             driver_path = os.path.join(os.getcwd(), 'chromedriver.exe')
-            self._log.debug(_('log webdriver path %s'), driver_path)
-
-            print(_('selenium pause bug message'))
+            self._log.debug(_('Using WebDriver at %s.'), driver_path)
 
             driver = webdriver.Chrome(
                 executable_path=driver_path,
@@ -83,16 +81,17 @@ class Browser:
             return driver
 
         # TODO: Support for all Selenium-compatible browsers.
-        raise NotImplementedError(_('err browser not supported'))
+        raise NotImplementedError(
+            _('%s is not a supported browser type.' % self.BROWSER_TYPE))
 
     def go(self, url):
         """
         """
         
         if self.WAIT_FOR_KEYPRESS:
-            input(_('press enter'))
+            input(_('Press "Enter" to continue...'))
 
-        self._log.info(_('log browser url %s'), url)
+        self._log.info(_('%s going to %s'), self.BROWSER_TYPE, url)
         return self._driver.get(url)
 
     def sleep(self, sleep_time=None):
@@ -102,7 +101,7 @@ class Browser:
         if not sleep_time:
             sleep_time = random.uniform(self.SLEEP_MIN, self.SLEEP_MAX)
 
-        self._log.debug(_('log sleep %.2f'), sleep_time)
+        self._log.debug(_('Sleeping for %.2f seconds.'), sleep_time)
         sleep(sleep_time)
 
     def captcha_check(self):
@@ -110,11 +109,10 @@ class Browser:
         """
 
         if '/sorry/' in self._driver.current_url:
-            self._log.error(_('log captcha start'))
-            print(_('selenium pause bug'))
+            self._log.error(_('CAPTCHA detected! Waiting for human...'))
             while '/sorry/' in self._driver.current_url:
                 sleep(self.SANITY_SLEEP)
-            self._log.info(_('log captcha done'))
+            self._log.info(_('Ok!'))
 
     def click_on_id(self, tag_id):
         """
@@ -123,7 +121,6 @@ class Browser:
         try:
             item = self._driver.find_element_by_id(tag_id)
         except exceptions.NoSuchElementException:
-            self._log.debug(_('err browser tag not found %s'), tag_id)
             return False
 
         item.click()
@@ -134,5 +131,5 @@ class Browser:
         """
         """
 
-        self._log.info(_('log browser quit %s'), self.BROWSER_TYPE)
+        self._log.info(_('Closing %s.'), self.BROWSER_TYPE)
         self._driver.quit()

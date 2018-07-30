@@ -22,21 +22,20 @@ def check_for_api(site, config):
               + config['WORDPRESS_API_URL'])
 
     # Check for internal settings.
-    log.debug(_('log wordpress api test start'))
+    log.debug(_('Testing for WordPress API.'))
     if (not site['wordpress_enable'] or
             (not site['wordpress_enable_pages']
              and not site['wordpress_enable_posts'])):
-        log.warning(_('log wordpress scrape disabled %s'), site['name'])
+        log.warning(_('Skipping (disabled): %s'), site['name'])
         return False
 
     # Check for API access.
     with urlopen(wp_url) as result:
         result = json.loads(result.read())
     if result['namespace'] != 'wp/v2':
-        log.warning(_('log wordpress no api %s'), site['name'])
+        log.warning(_('Skipping (no API): %s'), site['name'])
         return False
-    
-    log.info(_('log wordpress api found %s'), site['name'])
+
     return True
 
 
@@ -47,7 +46,7 @@ def get_articles(site, config):
     log = getLogger(__name__)
 
     # Perform the API query.
-    log.debug(_('log wordpress query start %s'), site['name'])
+    log.debug(_('Scraping %s from WordPress API.'), site['name'])
     wp_url = ('http://' + site['url'].strip('/')
               + config['WORDPRESS_API_URL'])
     scrape_results = []
@@ -58,18 +57,18 @@ def get_articles(site, config):
         # Sleep for a bit, as a courtesy.
         sleep_time = random.uniform(
             config['SLEEP_MIN'], config['SLEEP_MAX'])
-        log.debug(_('log sleep %.2f'), sleep_time)
+        log.debug(_('Sleeping for %.2f seconds.'), sleep_time)
         time.sleep(sleep_time)
 
         # Collect WordPress pages.
         if site['wordpress_enable_pages']:
             wp_query = config['WORDPRESS_PAGES_QUERY_URL'].format(
                 api_url=wp_url, terms='+'.join(term.split(' ')))
-            log.info(_('log wordpress query page %s'), wp_query)
+            log.info(_('Querying: %s'), wp_query)
             with urlopen(wp_query) as result:
                 json_results += json.loads(result.read())
         else:
-            log.info(_('log wordpress pages disabled %s'), site['name'])
+            log.info(_('Skipping pages (disabled): %s'), site['name'])
 
         # TODO: Move this into a function
         sleep_time = random.uniform(
@@ -81,17 +80,17 @@ def get_articles(site, config):
         if site['wordpress_enable_posts']:
             wp_query = config['WORDPRESS_POSTS_QUERY_URL'].format(
                 api_url=wp_url, terms='+'.join(term.split(' ')))
-            log.info(_('log wordpress query post %s'), wp_query)
+            log.info(_('Querying: %s'), wp_query)
             with urlopen(wp_query) as result:
                 json_results += json.loads(result.read())
         else:
-            log.info(_('log wordpress posts disabled %s'), site['name'])
+            log.info(_('Skipping posts (disabled): %s'), site['name'])
         
         for json_result in json_results:
             scrape_results.append((json_result, term))
     
     if scrape_results == []:
-        log.warning(_('log wordpress no results %s'), site['name'])
+        log.warning(_('No API results for %s.'), site['name'])
         return scrape_results
 
     # Process the results.
@@ -116,4 +115,4 @@ def get_articles(site, config):
         }
         yield article
 
-    log.info(_('log wordpress site done %s'), site)
+    log.info(_('Scrape complete.'))

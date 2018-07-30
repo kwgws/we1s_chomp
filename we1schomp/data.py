@@ -24,22 +24,22 @@ def load_articles(path, no_skip=False):
     articles = []
     count = 0
 
-    log.debug(_('log search path %s'), path)
+    log.debug(_('Searching for JSON files in %s.'), path)
     for json_data, json_file in load_json_files_from_path(path):
 
         # If a file already has stuff in the "content" key, that implies
         # we've already scraped it, so we can safely skip it here.
         if json_data['content'] != '' and not no_skip:
-            log.debug(_('log file skip %s'), json_file)
+            log.info(_('Skipping: %s'), json_file)
             continue
 
         # Keep track of how many files we've loaded so we can report how many
         # we've skipped.
-        log.info(_('log file load %s'), json_file)
+        log.info(_('Loading: %s'), json_file)
         count += 1
         articles.append(json_data)
 
-    log.debug(_('log search done %s skipped %s'), count, len(articles) - count)
+    log.info(_('Found %s files, %s skipped.'), count, len(articles) - count)
     return articles
 
 
@@ -68,7 +68,7 @@ def save_article(article, config):
     for json_data, json_file in load_json_files_from_path(path):
         if json_data['doc_id'] == article['doc_id']:
             filename = json_file
-            log.info(_('log overwriting file %s'), filename)
+            log.info(_('Saving (overwrite): %s'), filename)
             break
 
     # Otherwise make a new file.
@@ -98,7 +98,7 @@ def save_article(article, config):
                 filename = temp_filename
                 break
         
-        log.info(_('log saving new file %s'), filename)
+        log.info(_('Saving: %s'), filename)
 
     filename = os.path.join(path, filename)
     with open(filename, 'w', encoding='utf-8') as outfile:

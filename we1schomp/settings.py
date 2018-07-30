@@ -23,7 +23,7 @@ def from_ini(filename):
 
     # Create the output path if it doesn't exist yet.
     if not os.path.exists(settings['OUTPUT_PATH']):
-        log.info(_('log dir create %s'), settings['OUTPUT_PATH'])
+        log.info(_('Creating directory: %s'), settings['OUTPUT_PATH'])
         os.makedirs(settings['OUTPUT_PATH'])
 
     return settings, sites
@@ -73,7 +73,7 @@ def get_sites(config):
 
         # Skip any sites flagged with "skip=true".
         if site.getboolean('skip'):
-            log.warning(_('log file skip %s'), name)
+            log.warning(_('Skipping (disabled): %s'), name)
             continue
 
         # Remove unnecessary protocol information from URLs.
@@ -101,7 +101,7 @@ def get_sites(config):
             'content_length_min': site.getint('googleScrapeContentLengthMin')
         }
 
-        log.info(_('log file load %s'), name)
+        log.info(_('Loaded: %s'), name)
         yield site
 
 
@@ -119,9 +119,9 @@ def get_logger(config, log_level='info'):
 
     log_level = getattr(logging, log_level.upper(), None)
     if not isinstance(log_level, int):
-        raise ValueError(_('err invalid log level %s'), log_level)
+        raise ValueError(_('Invalid Log Level: %s'), log_level)
     logging.basicConfig(level=log_level, handlers=[log_file, console_log])
 
     log = logging.getLogger(__name__)
-    log.debug(_('log start %s'), log_file)
+    log.info(_('Log Started: %s'), log_file)
     return log

@@ -18,12 +18,13 @@ def get_urls(site, config, browser):
     log = getLogger(__name__)
 
     if not site['google_enable']:
-        log.warning(_('log google disabled for site %s'), site)
+        log.warning(_('Google disabled for %s.'), site['name'])
         return []
 
     for term in site['terms']:
 
-        log.info(_('log google query %s %s'), term, site['url'])
+        log.info(
+            _('Starting Google search for "%s" at %s.'), term, site['name'])
 
         # Start the query.
         browser.go(config['GOOGLE_QUERY_URL'].format(
@@ -45,7 +46,8 @@ def get_urls(site, config, browser):
                 stop_flag = False
                 for stop in site['google_stopwords']:
                     if stop in url:
-                        log.warning(_('log google skip %s %s'), url, stop)
+                        log.warning(
+                            _('Skipping (stopword "%s"): %s'), stop, url)
                         stop_flag = True
                         break
                 if stop_flag:
@@ -60,10 +62,10 @@ def get_urls(site, config, browser):
                 try:
                     date = str(rc.find('span', {'class': 'f'}).text)
                     date = date.replace(' - ', '')
-                    log.info(_('log google query ok %s'), url)
+                    log.info(_('Ok: %s'), url)
                 except AttributeError:
                     date = 'N.D.'
-                    log.warning(_('log google query no date %s'), url)
+                    log.warning(_('Ok (no date): %s'), url)
                 
                 article = {
                     'doc_id': str(uuid4()),
@@ -87,12 +89,12 @@ def get_urls(site, config, browser):
 
             browser.sleep()
             if browser.click_on_id('pnnext'):
-                log.debug(_('log google next page'))
+                log.debug(_('Going to next page.'))
             else:
-                log.info(_('log google no next page'))
+                log.info(_('No more result pages.'))
                 break
 
-    log.info(_('log google done'))
+    log.info(_('Google search complete.'))
 
 
 def get_content(site, config, browser):
@@ -105,11 +107,12 @@ def get_content(site, config, browser):
     articles = [a for a in data.load_articles(config['OUTPUT_PATH'])
                 if a['pub_short'] == site['short_name']]
     if articles == []:
-        log.warning(_('log google no articles for site %s'), site)
+        log.warning(_('No articles found for %s.'), site['name'])
+    else:
+        log.info(_('Beginning scrape of %s.'), site['name'])
 
     for article in articles:
        
-        log.info(_('log urls query %s %s'), article['url'], site['name'])
         browser.go(article['url'])
         soup = BeautifulSoup(browser.source, 'html5lib')
         
@@ -140,4 +143,4 @@ def get_content(site, config, browser):
         })
         yield article
 
-    log.info(_('log urls scrape done'))
+    log.info(_('Scrape complete.'))

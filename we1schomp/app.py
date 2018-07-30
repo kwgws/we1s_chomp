@@ -16,20 +16,23 @@ def run():
     """
 
     # Parse command-line arguments
-    parser = ArgumentParser(description=_('arg help app description'))
+    parser = ArgumentParser(description=_(
+        'A Digital Humanities Web Scraper by WhatEvery1Says (we1s.ucsb.edu).'))
 
     parser.add_argument('--settings-file', type=str, 
-                        help=_('arg help settings file'),
+                        help=_('Specify the settings file to use.'),
                         default='settings.ini')
     parser.add_argument('--no-wordpress', action='store_true',
-                        help=_('arg help no wordpress'))
+                        help=_('Do not use the WordPress scraper.'))
     parser.add_argument('--no-google-search', action='store_true',
-                        help=_('arg help no google'))
+                        help=_('Do not use the Google scraper. Articles '
+                               'with empty content will still be collected.'))
 
     args = parser.parse_args()
 
     # Start the app
-    print(_('hello'))
+    print(_('\n\nWE1S Chomp --- A Digital Humanities Web Scraper'
+            '\n2018 by the WhatEvery1Says Team <we1s.ucsb.edu>.'))
     time.sleep(2.0)
 
     config, sites = settings.from_ini(args.settings_file)
@@ -52,4 +55,4 @@ def run():
                 data.save_article(article, config)
 
     browser.close()
-    print(_('goodbye'))
+    print(_('\nQueue completed. Goodbye!\n\n'))
