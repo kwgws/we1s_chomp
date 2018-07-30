@@ -55,4 +55,9 @@ def run():
                 data.save_article(article, config)
 
     browser.close()
-    print(_('\nQueue completed. Goodbye!\n\n'))
+    print(_('\nQueue completed. Goodbye!\n'))
+
+    # Keep the window open on exit as a convenience for those running from
+    # a bat file.
+    if config['PAUSE_ON_EXIT']:
+        input('Press "Enter" to exit...')

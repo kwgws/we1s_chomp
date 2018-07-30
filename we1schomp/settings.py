@@ -42,6 +42,7 @@ def get_settings(config):
         'NAMESPACE': config['namespace'],
         'OUTPUT_FILENAME': config['outputFilename'],
         'OUTPUT_PATH': config['outputPath'],
+        'PAUSE_ON_EXIT': config.getboolean('pauseOnExit'),
 
         # Browser settings
         'WAIT_FOR_KEYPRESS': config.getboolean('browserWaitForKeypress'),
