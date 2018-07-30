@@ -26,6 +26,7 @@ def get_articles(sites, config, browser, articles=None):
         if (not site['wordpress_enable_pages'] 
                 and not site['wordpress_enable_posts']):
             log.info(_('log wordpress scrape disabled %s'), site['name'])
+            continue
 
         wp_url = ('http://' + site['url'].strip('/')
                   + config['WORDPRESS_API_URL'])
@@ -44,15 +45,17 @@ def get_articles(sites, config, browser, articles=None):
                 browser.sleep()
                 wp_query = config['WORDPRESS_PAGES_QUERY_URL'].format(
                     api_url=wp_url, terms='+'.join(term.split(' ')))
-                browser.go(wp_query)
-                scrape_results += json.loads(browser.source), term
+                log.info(_('log wordpress query page %s'), wp_query)
+                with urlopen(wp_query) as result:
+                    scrape_results += json.loads(result.read()), term
 
             if site['wordpress_enable_posts']:
                 browser.sleep()
                 wp_query = config['WORDPRESS_POSTS_QUERY_URL'].format(
                     api_url=wp_url, terms='+'.join(term.split(' ')))
-                browser.go(wp_query)
-                scrape_results += json.loads(browser.source), term
+                log.info(_('log wordpress query post %s'), wp_query)
+                with urlopen(wp_query) as result:
+                    scrape_results += json.loads(result.read()), term
         
         if scrape_results == []:
             log.warning(_('log wordpress no results %s'), site['name'])
