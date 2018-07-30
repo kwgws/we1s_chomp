@@ -91,7 +91,7 @@ class Browser:
         if self.WAIT_FOR_KEYPRESS:
             input(_('Press "Enter" to continue...'))
 
-        self._log.info(_('%s going to %s'), self.BROWSER_TYPE, url)
+        self._log.info(_('%s going to: %s'), self.BROWSER_TYPE, url)
         return self._driver.get(url)
 
     def sleep(self, sleep_time=None):
