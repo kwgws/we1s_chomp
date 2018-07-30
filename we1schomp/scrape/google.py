@@ -10,13 +10,13 @@ from bs4 import BeautifulSoup
 from we1schomp import data
 
 
-def get_articles(sites, browser, config, articles=None):
+def get_articles(sites, config, browser, articles=None):
     """
     """
 
     log = getLogger(__name__)
     if not articles:
-        articles = data.load_article_list_from_json(config['OUTPUT_PATH'])
+        articles = data.load_article_list_from_json(config['OUTPUT_PATH'])       
 
     log.info(_('log google start'))
     for site in sites:

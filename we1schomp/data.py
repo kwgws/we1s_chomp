@@ -51,8 +51,8 @@ def load_json_files_from_path(path):
     for json_file in [f for f in os.listdir(path) if f.endswith('.json')]:
 
         filename = os.path.join(path, json_file)
-        with open(filename, 'r', encoding='utf-8') as json_file:
-            json_data = json.load(json_file)
+        with open(filename, 'r', encoding='utf-8') as infile:
+            json_data = json.load(infile)
 
         yield json_data, json_file
 
@@ -66,14 +66,12 @@ def update_article(articles, config, overwrite=True, **kwargs):
     name = config['DB_NAME'].format(
         site=kwargs['site']['short_name'], 
         term=kwargs['term'], slug=kwargs['name'])
-    metapath = config['METAPATH'].format(
-        site=kwargs['site']['short_name'],
-        term=kwargs['term'], slug=kwargs['name'])
+    metapath = config['METAPATH'].format(site=kwargs['site']['short_name'])
 
     try:  # Are we updating an old entry or starting a new one?
         article = next(a for a in articles if a['name'] == name)
 
-        if not overwrite:
+        if not overwrite and article['content'] != '':
             log.info(_('log skipping article %s'), article['name'])
             return article
 
@@ -81,7 +79,7 @@ def update_article(articles, config, overwrite=True, **kwargs):
 
     except StopIteration:
         article = {
-            'doc_id': uuid4(),
+            'doc_id': str(uuid4()),
             'attachment_id': '',
             'namespace': config['NAMESPACE'],
             'name': name,
@@ -115,13 +113,14 @@ def save_article_to_json(article, config):
     log.info(_('log saving article to path %s %s'), article['name'], path)
 
     # Update existing files first.
-    for json_file, json_data in load_json_files_from_path(path):
+    filename = ''
+    for json_data, json_file in load_json_files_from_path(path):
         if json_data['doc_id'] == article['doc_id']:
             filename = json_file
             log.info(_('log overwriting file %s'), filename)
 
     # Otherwise make a new file.
-    if not filename:
+    if filename == '':
 
         # Use Mirrormask timestamp format.
         now = time.localtime()
@@ -189,5 +188,5 @@ def slugify(title_string):
     """
 
     title_string = clean_string(title_string, r'[^a-zA-Z0-9]')
-    title_string = title_string.replace(' ', '_').lower()
+    title_string = title_string.replace(' ', '-').lower()
     return title_string

@@ -105,7 +105,7 @@ class Browser:
         if not sleep_time:
             sleep_time = random.uniform(self.SLEEP_MIN, self.SLEEP_MAX)
 
-        self._log.info(_('log browser sleep %.2f'), sleep_time)
+        self._log.info(_('log sleep %.2f'), sleep_time)
         sleep(sleep_time)
 
     def captcha_check(self):

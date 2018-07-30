@@ -27,15 +27,14 @@ def scrape_all(config, sites, articles=None, browser=None):
         articles = data.load_article_list_from_json(
             config['OUTPUT_PATH'], no_skip=True)
 
-    # Start a browser if we don't already have one.
-    browser = Browser('Chrome', settings=config)
-
     # Pass WordPress articles to the WordPress scraper.
     if config['WORDPRESS_ENABLE_SCRAPE']:
         for article in wordpress.get_articles(
-                sites=sites, browser=browser,
-                config=config, articles=articles):
+                sites=sites, config=config, articles=articles):
             data.save_article_to_json(article, config)
+
+    # Start a browser if we don't already have one.
+    browser = Browser('Chrome', settings=config)
     
     # Otherwise get metadata from Google...
     if config['GOOGLE_ENABLE_SCRAPE']:

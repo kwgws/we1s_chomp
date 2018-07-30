@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 from we1schomp import data
 
 
-def get_articles(sites, browser, config, articles=None):
+def get_articles(sites, config, browser, articles=None):
     """
     """
 
