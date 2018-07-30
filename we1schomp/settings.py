@@ -107,7 +107,7 @@ def get_sites(config):
             'content_length_min': site.getint('urlScrapeContentLengthMin')
         }
 
-        log.info(_('log file load%s'), name)
+        log.info(_('log file load %s'), name)
         yield site
 
 
