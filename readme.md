@@ -33,15 +33,15 @@ Each website should have a section in ```settings.ini``` that includes informati
 
 [thebaffler]
 name = The Baffler
-url = thebaffler.com
+site = thebaffler.com
 
 [theoutline]
 name = The Outline
-url = theoutline.com
+site = theoutline.com
 skip = true
 ```
 
-Every website you query *must* have a section, and every section *must* have a URL and proper name. Do not include ```http://```, ```www.```, etc.All the other settings are optional. Any settings you do not specify will revert to the defaults provided under the heading ```[DEFAULT]```.
+Every website you query *must* have a section, and every section *must* have a URL and proper name. All the other settings are optional. Any settings you do not specify will revert to the defaults provided under the heading ```[DEFAULT]```.
 
 ## URL Collection
 
@@ -51,14 +51,14 @@ Once you have configured ```settings.ini```, you can begin collecting URLs.
 python run.py --urls_only
 ```
 
-Eventually, Google will become suspicious and give you a CAPTCHA to complete to prove that you're not a bot. Fill this out in Chrome, return to the WE1S Chomp terminal, and press ```Enter```.
+Eventually, Google will become suspicious and give you a CAPTCHA to complete to prove that you're not a bot. Once you solve it the query should resume.
 
 ## Article Collection
 
 Once you have a set of URL files in place, you can begin collecting articles.
 
 ```bash
-python run.py --articles_only
+python run.py --no-google-search
 ```
 
 WE1S Chomp works by grabbing all the content from the ```content_tag``` tags in ```settings.ini``` and throwing out anything with fewer than ```content_length_min``` characters. If you are not getting good results, you can change these on a per-site basis in ```settings.ini```.
