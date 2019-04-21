@@ -2,6 +2,7 @@ WE1S Chomp, by Sean Gilleran and WhatEvery1Says
 ---------------------------------------------
 
 http://we1s.ucsb.edu
+
 http://github.com/seangilleran/we1schomp
 
 Chomp is a digital humanities web scraper designed to work at scale. It is
