@@ -33,7 +33,7 @@ def full_run():
 
     db = Data()
     with Browser() as browser:
-        wordpress.chomp(db, browser)
+        #wordpress.chomp(db, browser)
         google.chomp(db, browser)
     clean_articles(db)
 

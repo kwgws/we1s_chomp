@@ -5,6 +5,7 @@ http://we1s.ucsb.edu
 http://github.com/seangilleran/we1schomp
 """
 
+from copy import deepcopy
 import csv
 from datetime import datetime
 from gettext import gettext as _
@@ -54,6 +55,8 @@ class Data:
                     query['chompDate'] = dateparser.parse(query['chompDate'])
                 if query['count'] == '':
                     query['count'] = 0
+                else:
+                    query['count'] = int(query['count'])
                 query['site'] = next(s for s in self.sites if s['name'] == query['site'])
                 self.queries.append(query)
                 log.debug(_('..."%s" at %s ok.'), query['term'], query['site']['name'])
@@ -97,7 +100,7 @@ class Data:
         log = getLogger(__name__)
 
         log.info(_('Saving %i queries to %s...'), len(self.queries), config.QUERIES)
-        safe_queries = self.queries.copy()
+        safe_queries = deepcopy(self.queries)
         for query in safe_queries:
             query['site'] = query['site']['name']
             query['startDate'] = query['startDate'].strftime('%Y-%m-%d')
@@ -161,7 +164,7 @@ class Data:
 
         log.info(_('Saving %i articles to %s...'), len(self.articles), config.OUTPUT_PATH)
         for article in self.articles:
-            safe_article = article.copy()
+            safe_article = deepcopy(article)
             filename = safe_article['filename']  
             safe_article.pop('filename')             
             safe_article.pop('site')

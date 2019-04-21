@@ -29,9 +29,13 @@ def yield_articles(query, db, browser):
         )
         response = browser.get_json(query_uri)
 
+        # Something happend--probably ran out of content.
+        if 'items' not in response:
+            break
+
         for article in response['items']:
             date = dateparser.parse(article['snippet'].split(' ... ')[0])
-            if date < query['startDate'] or date > query['endDate']:
+            if date is None or date < query['startDate'] or date > query['endDate']:
                 log.info(_('...skipping %s, out of date range.'), article['link'])
                 continue
 

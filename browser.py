@@ -35,6 +35,9 @@ class Browser:
         options.add_argument('--log-level=3')   # Suppress warnings.
         options.add_argument('--incognito')     # In case we hit paywalls.
 
+        # Disable images.
+        options.add_experimental_option('prefs', {"profile.managed_default_content_settings.images": 2})
+
         self._driver = webdriver.Chrome(
             executable_path=config.SELENIUM_DRIVER,
             service_log_path=config.SELENIUM_LOG,
