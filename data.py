@@ -100,8 +100,7 @@ class Data:
         log = getLogger(__name__)
 
         log.info(_('Saving %i queries to %s...'), len(self.queries), config.QUERIES)
-        safe_queries = deepcopy(self.queries)
-        for query in safe_queries:
+        for query in deepcopy(self.queries):
             query['site'] = query['site']['name']
             query['startDate'] = query['startDate'].strftime('%Y-%m-%d')
             query['endDate'] = query['endDate'].strftime('%Y-%m-%d')
@@ -163,11 +162,10 @@ class Data:
         log = getLogger(__name__)
 
         log.info(_('Saving %i articles to %s...'), len(self.articles), config.OUTPUT_PATH)
-        for article in self.articles:
-            safe_article = deepcopy(article)
-            filename = safe_article['filename']  
-            safe_article.pop('filename')             
-            safe_article.pop('site')
+        for article in deepcopy(self.articles):
+            filename = article['filename']  
+            article.pop('filename')             
+            article.pop('site')
             with open(filename, 'w', encoding='utf-8') as jsonfile:
                 json.dump(safe_article, jsonfile, ensure_ascii=False, indent=2)
             log.debug(_('...%s ok.'), filename)
