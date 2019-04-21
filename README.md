@@ -12,7 +12,9 @@ content is arranged within HTML documents.
 See config.py for configuration details. Make sure query and source csv files
 are in place before running.
 
-**NB:** Before doing a Google Chomp, you need to load the following variables
+**NB1:** Set up for Windows; will require some tweaking to work on Mac.
+
+**NB2:** Before doing a Google Chomp, you need to load the following variables
 into memory:
 1. CHOMP_GOOGLE_CX - Custom search engine ID.
 2. CHOMP_GOOGLE_KEY - Custom search engine API key.
