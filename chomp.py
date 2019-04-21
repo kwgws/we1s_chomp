@@ -1,60 +1,59 @@
 # -*- coding:utf-8 -*-
+""" WE1S Chomp, by Sean Gilleran and WhatEvery1Says
+
+http://we1s.ucsb.edu
+http://github.com/seangilleran/we1schomp
+
+Chomp is a digital humanities web scraper designed to work at scale. It is
+capable of collecting thousands or tens of thousands of articles without
+relying on site-specific settings by making strategic assumptions about how
+content is arranged within HTML documents.
+
+See config.py for configuration details.
 """
-"""
+
+import html
+import logging
+import string
 
 import bleach
 from bs4 import BeautifulSoup
-import html
 import regex as re
-import string
 from unidecode import unidecode
 
 from browser import Browser
 import config
-import data
-from datetime import datetime
+from data import Data
 import google
 import wordpress
 
 
-def update_wp_uris():
-    """
-    """
+def full_run():
+    """Do a full run-through of Chomp."""
 
-    sites = data.load_sites()
+    db = Data()
     with Browser() as browser:
-        for site in sites:
-            site = wordpress.get_uri(site, browser)
-    sites = data.save_sites(sites)
-    return sites
+        wordpress.chomp(db, browser)
+        google.chomp(db, browser)
+    clean_articles(db)
 
 
-def chomp_wordpress():
-    """
-    """
+def clean_articles(db):
+    """ Process raw HTML content into plain text.
 
-    queries = data.load_queries()
-    results = []
+    This is the essential "meat" of Chomp and will probably require a lot of
+    fine-tuning. Important parameters are stored in config.py. Here's how it
+    works:
+    1. Trim out any tags we absolutely don't need--stuff like script, nav, etc.
+    2. Look for tags likely to contain actual text content and save anything
+       in those longer than a certain character length.
+    3. Get rid of anything that isn't raw ASCII text--escape codes, links, etc.
 
-    with Browser() as browser:
-        for query in queries:
-            if query['count'] != '' or query['site']['wordpressUri'] == '':
-                continue
-            articles = list(wordpress.yield_articles(query, browser))
-            query['count'] = len(articles)
-            results += articles
-
-    data.save_queries(queries)
-    return results
-
-
-def clean_articles():
-    """
+    Args:
+        db (Data): Database singleton.
     """
 
-    articles = data.load_articles()
-
-    for article in articles:
+    for article in db.articles:
 
         print('fixin ' + article['filename'])
 
@@ -116,5 +115,22 @@ def clean_articles():
         article['content'] = content
         article['length'] = len(content.split(' '))
 
-    data.save_articles(articles)
-        
+    db.save_articles()
+
+
+def start_log():
+    """Start logging. Format strings and output paths are in config.py."""
+
+    log_file = logging.FileHandler(config.LOGFILE)
+    log_file.setFormatter(logging.Formatter(config.LOGFILE_FORMAT))
+    console_log = logging.StreamHandler()
+    console_log.setFormatter(logging.Formatter(config.CONSOLE_FORMAT))
+    log_level = getattr(logging, config.LOG_LEVEL.upper(), None)
+    if not isinstance(log_level, int):
+        raise ValueError(_('Invalid log level "%s".'), log_level)
+    logging.basicConfig(level=log_level, handlers=[log_file, console_log])
+
+
+if __name__ == '__main__':
+    start_log()
+    full_run()
