@@ -19,7 +19,7 @@ def yield_articles(query, db, browser):
 
     log.info(_('Chomping "%s" at %s.'), query['term'], query['site']['title'])
     g_uri = config.GOOGLE_URI.format(cx=config.GOOGLE_CX, key=config.GOOGLE_KEY)
-    
+
     page = 1
     while True:
         query_uri = g_uri + config.GOOGLE_URI_QUERY.format(
@@ -58,7 +58,7 @@ def yield_articles(query, db, browser):
                 'content_raw': content
             }
 
-        if not 'nextPage' in response['queries']:
+        if 'nextPage' not in response['queries']:
             break
         page += 1
 

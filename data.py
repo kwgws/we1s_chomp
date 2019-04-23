@@ -26,7 +26,6 @@ class Data:
         self.load_all()
 
     def load_all(self):
-        log = getLogger(__name__)
         self.load_sites()
         self.load_queries()
         self.load_articles()
@@ -80,12 +79,10 @@ class Data:
         log.info(_('Done!'))
 
     def save_all(self):
-        log = getLogger(__name__)
-
         self.save_articles()
         self.save_queries()
         self.save_sites()
-        
+
     def save_sites(self):
         log = getLogger(__name__)
 
@@ -100,7 +97,8 @@ class Data:
         log = getLogger(__name__)
 
         log.info(_('Saving %i queries to %s...'), len(self.queries), config.QUERIES)
-        for query in deepcopy(self.queries):
+        safe_queries = deepcopy(self.queries)
+        for query in safe_queries:
             query['site'] = query['site']['name']
             query['startDate'] = query['startDate'].strftime('%Y-%m-%d')
             query['endDate'] = query['endDate'].strftime('%Y-%m-%d')
@@ -130,7 +128,7 @@ class Data:
         while os.path.exists(os.path.join(path, name + '_' + str(i) + '.json')):
             i += 1
         name += '_' + str(i)
-        
+
         article = {
             'doc_id': kwargs.get('doc_id', str(uuid4())),
             'attachment_id': '',
@@ -162,10 +160,11 @@ class Data:
         log = getLogger(__name__)
 
         log.info(_('Saving %i articles to %s...'), len(self.articles), config.OUTPUT_PATH)
-        for article in deepcopy(self.articles):
-            filename = article['filename']  
-            article.pop('filename')             
-            article.pop('site')
+        for article in self.articles:
+            safe_article = deepcopy(article)
+            filename = article['filename']
+            safe_article.pop('filename')
+            safe_article.pop('site')
             with open(filename, 'w', encoding='utf-8') as jsonfile:
                 json.dump(safe_article, jsonfile, ensure_ascii=False, indent=2)
             log.debug(_('...%s ok.'), filename)

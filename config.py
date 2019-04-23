@@ -28,7 +28,8 @@ SELENIUM_DRIVER = os.path.join(os.getcwd(), 'chromedriver.exe')
 SELENIUM_LOG = os.path.join(os.getcwd(), 'selenium.log')
 SELENIUM_WAIT_FOR_KEYPRESS = False
 
-GOOGLE_URI = 'https://www.googleapis.com/customsearch/v1?cx={cx}&key={key}&fields=queries,items(title,link,snippet)&filter=1'
+GOOGLE_URI = ('https://www.googleapis.com/customsearch/'
+              + 'v1?cx={cx}&key={key}&fields=queries,items(title,link,snippet)&filter=1')
 GOOGLE_URI_QUERY = '&q={term}&siteSearch={url}&start={page}'
 GOOGLE_CX = os.environ['CHOMP_GOOGLE_CX']
 GOOGLE_KEY = os.environ['CHOMP_GOOGLE_KEY']

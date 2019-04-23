@@ -28,7 +28,7 @@ def update_uris(db, browser):
                 site['wordpressUri'] = ''
                 log.debug(_('...not found.'))
                 continue
-        except: # TODO: Be specific about exceptions here.
+        except:  # noqa: E722 (TODO: Be specific about exceptions here.)
             site['wordpressUri'] = ''
             log.debug(_('...not found.'))
             continue
@@ -50,7 +50,7 @@ def yield_articles(query, db, browser):
     log.info(_('Chomping "%s" at %s.'), query['term'], query['site']['title'])
     wp_uri = query['site']['wordpressUri']
     for wp_query in config.WORDPRESS_URI_QUERIES:
-        
+
         page = 1
         while True:
             query_uri = wp_uri + wp_query.format(

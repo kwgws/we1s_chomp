@@ -12,6 +12,7 @@ content is arranged within HTML documents.
 See config.py for configuration details.
 """
 
+from gettext import gettext as _
 import html
 import logging
 import string
@@ -33,7 +34,7 @@ def full_run():
 
     db = Data()
     with Browser() as browser:
-        #wordpress.chomp(db, browser)
+        wordpress.chomp(db, browser)
         google.chomp(db, browser)
     clean_articles(db)
 
@@ -65,7 +66,7 @@ def clean_articles(db):
             soup.script.extract()
         except AttributeError:
             pass
-        
+
         # Now focus in on the content. We can't guarantee they've used the
         # <article> tag, but it's a safe bet they won't put an article in the
         # <header> or <footer>.
@@ -77,7 +78,7 @@ def clean_articles(db):
             soup.footer.extract()
         except AttributeError:
             pass
-        
+
         # Finally, take all the content tags, default <p>, and mush together
         # any that are over a certain length of characters. This can be very
         # imprecise, but it seems to work for the most part. If we're getting
@@ -110,7 +111,7 @@ def clean_articles(db):
         # Final cleanup.
         content = ''.join([x for x in content if x in string.printable])
         content = ' '.join(content.split())
-        content = content.replace(' .', '.') # ??
+        content = content.replace(' .', '.')  # ??
 
         article['content'] = content
         article['length'] = len(content.split(' '))

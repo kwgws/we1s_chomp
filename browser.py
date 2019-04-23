@@ -12,7 +12,6 @@ from time import sleep
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.common import exceptions
 from selenium.webdriver.common.keys import Keys
 
 
@@ -44,7 +43,7 @@ class Browser:
             chrome_options=options
         )
         self._driver.implicitly_wait(config.SLEEP_TIME[0])
-    
+
     def __enter__(self):
         return self
 
@@ -66,7 +65,7 @@ class Browser:
 
     def new_tab(self):
         """Open a new browser tab.
-        
+
        TODO: At the moment this only works in Windows. Needs to be CMD for Mac.
         """
 
@@ -75,7 +74,7 @@ class Browser:
 
     def close_tab(self):
         """Close current browser tab.
-        
+
         TODO: At the moment this only works in Windows. Needs to be CMD for Mac.
         """
 
