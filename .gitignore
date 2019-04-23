@@ -104,10 +104,13 @@ venv.bak/
 .mypy_cache/
 
 # we1schomp
+.vs/
 .vscode/
 venv
 output/
 *.bat
 *.rc
 *.log
+*.csv
+*.json
 local.ini
