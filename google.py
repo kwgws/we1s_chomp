@@ -43,9 +43,9 @@ def yield_articles(query, db, browser):
             browser.new_tab()
             content = browser.get_html(article['link'])
             browser.close_tab()
+            match = True
             if query['term'] not in content:
-                log.info(_('...skipping %s, does not contain term.'), article['link'])
-                continue
+                match = False
 
             log.info(_('...collecting %s'), article['link'])
             query['count'] += 1
@@ -55,7 +55,8 @@ def yield_articles(query, db, browser):
                 'title': article['title'],
                 'url': article['link'],
                 'date': date,
-                'content_raw': content
+                'content_raw': content,
+                'is_match': match
             }
 
         if 'nextPage' not in response['queries']:

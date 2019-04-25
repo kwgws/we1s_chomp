@@ -121,6 +121,10 @@ class Data:
             query['startDate'].strftime('%Y-%m-%d'),
             query['endDate'].strftime('%Y-%m-%d')
         ])
+
+        if not kwargs.get('is_match', True):
+            name += '_no-match'
+
         path = os.path.join(config.OUTPUT_PATH, name)
         if not os.path.exists(path):
             os.makedirs(path)

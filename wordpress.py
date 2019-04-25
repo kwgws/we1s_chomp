@@ -68,9 +68,9 @@ def yield_articles(query, db, browser):
                 if date < query['startDate'] or date > query['endDate']:
                     log.info(_('...skipping %s, out of date range.'), article['link'])
                     continue
+                match = True
                 if query['term'] not in article['content']['rendered']:
-                    log.info(_('...skipping %s, does not contain term.'), article['link'])
-                    continue
+                    match = False
 
                 log.info(_('...collecting %s'), article['link'])
                 query['count'] += 1
@@ -80,7 +80,8 @@ def yield_articles(query, db, browser):
                     'title': article['title']['rendered'],
                     'url': article['link'],
                     'date': date,
-                    'content_raw': article['content']['rendered']
+                    'content_raw': article['content']['rendered'],
+                    'is_match': match
                 }
 
             page += 1
