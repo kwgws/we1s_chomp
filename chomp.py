@@ -120,8 +120,6 @@ def clean_articles(db):
 
 
 def start_log():
-    """Start logging. Format strings and output paths are in config.py."""
-
     log_file = logging.FileHandler(config.LOGFILE)
     log_file.setFormatter(logging.Formatter(config.LOGFILE_FORMAT))
     console_log = logging.StreamHandler()

@@ -26,8 +26,6 @@ class Browser:
     """
 
     def __init__(self):
-        """Start browser and initialize Selenium driver."""
-
         if config.SELENIUM_BROWSER != 'Chrome':
             raise NotImplementedError('%s is not a supported browser type.', config.SELENIUM_BROWSER)
             exit()

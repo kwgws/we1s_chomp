@@ -14,6 +14,32 @@ import dateparser
 import config
 
 
+def chomp(db, browser):
+    """ Chomp queries using Google.
+
+    This will run all active queries in the CSV through Google and collect
+    relevant results, which should save us some work in terms of finding titles,
+    dates, etc. (Also, anything without a date will be skipped.)
+
+    NB: The CSE API can be very weird and returns slightly less information than
+    the "real" web search. Expect work-arounds!
+
+    Args:
+        db (Data): Database singleton.
+        browser (Browser): Browser singleton.
+    """
+    log = getLogger(__name__)
+
+    log.info(_('Starting Google Chomp...'))
+    count = 0
+    for query in db.queries:
+        for article in yield_articles(query, db, browser):
+            db.create_article(**article)
+        db.save_queries()
+        count += 1
+    log.info(_('Done! Finished %i queries.'), count)
+
+
 def yield_articles(query, db, browser):
     log = getLogger(__name__)
 
@@ -34,6 +60,9 @@ def yield_articles(query, db, browser):
             break
 
         for article in response['items']:
+
+            # Google's CSE API puts the date in the "Snippet" preview, separated
+            # by an elipsis.
             date = dateparser.parse(article['snippet'].split(' ... ')[0])
             if date is None or date < query['startDate'] or date > query['endDate']:
                 log.info(_('...skipping %s, out of date range.'), article['link'])
@@ -43,6 +72,8 @@ def yield_articles(query, db, browser):
             browser.new_tab()
             content = browser.get_html(article['link'])
             browser.close_tab()
+
+            # Check if term is actually in the article.
             match = True
             if query['term'] not in content:
                 match = False
@@ -59,19 +90,7 @@ def yield_articles(query, db, browser):
                 'is_match': match
             }
 
+        # We have two page-checks here because sometimes the API gets upset (?)
         if 'nextPage' not in response['queries']:
             break
         page += 1
-
-
-def chomp(db, browser):
-    log = getLogger(__name__)
-
-    log.info(_('Starting Google Chomp...'))
-    count = 0
-    for query in db.queries:
-        for article in yield_articles(query, db, browser):
-            db.create_article(**article)
-        db.save_queries()
-        count += 1
-    log.info(_('Done! Finished %i queries.'), count)
