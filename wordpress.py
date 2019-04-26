@@ -24,8 +24,8 @@ def chomp(db, browser):
     lots of "no match" results for now.
 
     Args:
-        db (Data): Database singleton.
-        browser (Browser): Browser singleton.
+        db (data.Data): Database singleton.
+        browser (browser.Browser): Browser singleton.
     """
     log = getLogger(__name__)
 
@@ -97,6 +97,12 @@ def yield_articles(query, db, browser):
 
 
 def update_uris(db, browser):
+    """ Check each website in the csv for a WordPress API.
+
+    Args:
+        db (data.Data): Database singleton.
+        browser (browser.Browser): Browser singleton.
+    """
     log = getLogger(__name__)
 
     log.info(_('Updating WordPress URIs...'))

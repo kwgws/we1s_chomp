@@ -25,8 +25,8 @@ def chomp(db, browser):
     the "real" web search. Expect work-arounds!
 
     Args:
-        db (Data): Database singleton.
-        browser (Browser): Browser singleton.
+        db (data.Data): Database singleton.
+        browser (browser.Browser): Browser singleton.
     """
     log = getLogger(__name__)
 

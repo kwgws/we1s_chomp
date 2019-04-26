@@ -51,7 +51,7 @@ def clean_articles(db):
     3. Get rid of anything that isn't raw ASCII text--escape codes, links, etc.
 
     Args:
-        db (Data): Database singleton.
+        db (data.Data): Database singleton.
     """
 
     for article in db.articles:
