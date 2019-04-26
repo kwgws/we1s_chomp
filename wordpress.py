@@ -60,7 +60,7 @@ def yield_articles(query, db, browser):
             response = browser.get_json(query_uri)
 
             # No more pages or no content for query term.
-            if not isinstance(response, (list,)) or len(response) == 0:
+            if response is None or not isinstance(response, (list,)) or len(response) == 0:
                 break
 
             for article in response:

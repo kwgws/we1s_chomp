@@ -30,7 +30,7 @@ def yield_articles(query, db, browser):
         response = browser.get_json(query_uri)
 
         # Something happend--probably ran out of content.
-        if 'items' not in response:
+        if response is None or 'items' not in response:
             break
 
         for article in response['items']:
