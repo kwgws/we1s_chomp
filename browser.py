@@ -4,15 +4,17 @@
 http://we1s.ucsb.edu
 http://github.com/seangilleran/we1schomp
 """
-
-import config
+from gettext import gettext as _
 import json
+from logging import getLogger
 import random
 from time import sleep
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+
+import config
 
 
 class Browser:
@@ -48,36 +50,30 @@ class Browser:
         return self
 
     def get_html(self, url):
-        """Go to a URL and collect the HTML from the response."""
-
         if config.SELENIUM_WAIT_FOR_KEYPRESS:
-            input('Press "Enter" to continue...')
+            input(_('Press "Enter" to continue...'))
         else:
             sleep(random.uniform(*config.SLEEP_TIME))
         self._driver.get(url)
         return self._driver.page_source
 
     def get_json(self, url):
-        """Go to a URL and collect the JSON from the response."""
+        log = getLogger(__name__)
 
         soup = BeautifulSoup(self.get_html(url), 'html5lib')
-        return json.loads(soup.find('pre').text)    # Chrome-specific.
+        data = soup.find('pre').text    # Chrome-specific.
+        if data is None:
+            log.info(_('Could not find JSON at URL: %s'), url)
+            return None
+        return json.loads(data)
 
     def new_tab(self):
-        """Open a new browser tab.
-
-       TODO: At the moment this only works in Windows. Needs to be CMD for Mac.
-        """
-
+        # TODO: At the moment this only works in Windows. Needs to be CMD for Mac.
         body = self._driver.find_element_by_tag_name('body')
         body.send_keys(Keys.CONTROL + Keys.SHIFT + 'n')
 
     def close_tab(self):
-        """Close current browser tab.
-
-        TODO: At the moment this only works in Windows. Needs to be CMD for Mac.
-        """
-
+        # TODO: At the moment this only works in Windows. Needs to be CMD for Mac.
         body = self._driver.find_element_by_tag_name('body')
         body.send_keys(Keys.CONTROL + 'w')
 
