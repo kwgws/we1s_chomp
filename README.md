@@ -18,11 +18,3 @@ are in place before running.
 into memory:
 1. CHOMP_GOOGLE_CX - Custom search engine ID.
 2. CHOMP_GOOGLE_KEY - Custom search engine API key.
-
-TODO
-----
-- De-duping between WordPress and Google.
-- Save state to return where we left off after an interruption.
-- Headless Selenium for remote operation.
-- Asynchronous collection to improve speed.
-- Save output as .zip files.
