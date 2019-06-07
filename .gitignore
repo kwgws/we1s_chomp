@@ -114,3 +114,4 @@ output/
 *.csv
 *.json
 local.ini
+*.sqlite
