@@ -40,7 +40,10 @@ class Browser:
         self._log = getLogger(__name__)
 
         self.wait_time = wait_time
-        self._driver = webdriver.Remote(command_executor=selenium_url)
+        self._driver = webdriver.Remote(
+            command_executor=selenium_url,
+            desired_capabilities={"browserName": "chrome"}
+        )
 
     ###
     def __enter__(self):
