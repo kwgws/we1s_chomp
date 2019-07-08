@@ -17,8 +17,6 @@ from typing import Dict, List, Tuple, Union
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
-from selenium.webdriver import ActionChains
-from selenium.webdriver.common.keys import Keys
 
 
 class Browser:
@@ -57,14 +55,6 @@ class Browser:
             self._driver.quit()
 
     ###
-    def stop(self, repeat: int = 3) -> None:
-        """Stop browser."""
-        if self._actions is not None:
-            for i in range(0, repeat):
-                sleep(0.5)
-                self._actions.send_keys(Keys.ESCAPE)
-
-    ###
     def get(self, url: str, get_json: bool = False) -> Union[Dict, List, str]:
         """Get the HTML result from a URL."""
 
@@ -78,7 +68,6 @@ class Browser:
             source = self._driver.find_element_by_tag_name("pre").text
             source = json.loads(source)
         else:
-            self.stop()
             source = str(self._driver.page_source)
 
         sleep(randfloat(*self.wait_time))
