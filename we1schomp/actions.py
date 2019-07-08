@@ -147,7 +147,7 @@ def get_articles(session: orm.Session, browser: Browser) -> None:
                     ]
                 )
                 if no_match:
-                    name += "_nomatch"
+                    name += "_no-exact-match"
                 index = 0
                 while f"{name}_{index}" in name_stops:
                     index += 1

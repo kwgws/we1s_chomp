@@ -180,7 +180,7 @@ def import_articles(session: orm.Session, path: str) -> None:
                     article_uuid=data["doc_id"],
                     name=data["name"],
                     date=getdate(data["pub_date"]),
-                    no_match=True if "_nomatch" in filename else False,
+                    no_match=True if "_no-exact-match" in filename else False,
                     query=query,
                 )
                 add = True
