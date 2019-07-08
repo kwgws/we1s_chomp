@@ -68,16 +68,16 @@ class Browser:
         if "http://" not in url and "https://" not in url:
             url = f"http://{url}"
         self._log.info("Browser going to %s" % url)
+    
+        self._driver.get(url)
 
-        try:
-            self._driver.get(url)
-
-            if get_json:
-                source = self._driver.find_element_by_tag_name("pre").text
-                source = json.loads(source)
-            else:
-                self.stop()
-                source = str(self._driver.page_source)
+        if get_json:
+            source = self._driver.find_element_by_tag_name("pre").text
+            source = json.loads(source)
+        else:
+            self.stop()
+            source = str(self._driver.page_source)
 
         sleep(randfloat(*self.wait_time))
+
         return source

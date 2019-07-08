@@ -69,12 +69,12 @@ def run() -> None:
         cx = os.getenv("CHOMP_GOOGLE_CX")
         key = os.getenv("CHOMP_GOOGLE_KEY")
 
-        if not args.selenium_path or args.selenium_path == "":
+        if not args.selenium_url or args.selenium_url == "":
             print("\u001b[31mError:\u001b[0m skipping responses, no browser specified.")
 
         elif (
-            args.selenium_path is not None
-            and args.selenium_path != ""
+            args.selenium_url is not None
+            and args.selenium_url != ""
             and (not cx or cx == "" or not key or key == "")
         ):
             print(
@@ -83,7 +83,7 @@ def run() -> None:
 
         else:
             with Browser(
-                selenium_path=args.selenium_path,
+                selenium_url=args.selenium_url,
                 wait_time=(args.min, args.max),
             ) as browser:
 
@@ -91,12 +91,12 @@ def run() -> None:
 
     if args.do_articles:
 
-        if not args.selenium_path or args.selenium_path == "":
+        if not args.selenium_url or args.selenium_url == "":
             print("\u001b[31mError:\u001b[0m skipping articles, no browser specified.")
 
         else:
             with Browser(
-                selenium_path=args.selenium_path,
+                selenium_url=args.selenium_url,
                 wait_time=(args.min, args.max),
             ) as browser:
 
@@ -195,7 +195,7 @@ def parse_args() -> argparse.Namespace:
         "--max-wait", help="max browser wait time", default=3.0, dest="max", type=float
     )
     options.add_argument(
-        "--selenium", help="selenium grid url", dest="selenium_path", type=str
+        "--selenium", help="selenium grid url", dest="selenium_url", type=str
     )
     options.add_argument(
         "--debug",
@@ -293,12 +293,12 @@ def task_list(args) -> None:
         print(f" ✓ Import articles from {args.article_in_path}")
     if args.do_responses:
         print(" ✓ Scrape sources for query search results")
-        if args.selenium_path is not None and args.selenium_path != "":
-            print(f"   Using Selenium Grid at {args.selenium_path}")
+        if args.selenium_url is not None and args.selenium_url != "":
+            print(f"   Using Selenium Grid at {args.selenium_url}")
     if args.do_articles:
         print(" ✓ Collect raw article XML/HTML from search results")
-        if args.selenium_path is not None and args.selenium_path != "":
-            print(f"   Using Selenium Grid at {args.selenium_path}")
+        if args.selenium_url is not None and args.selenium_url != "":
+            print(f"   Using Selenium Grid at {args.selenium_url}")
     if args.do_clean:
         print(" ✓ Collect article content from raw XML/HTML")
         print(f"   Using tag(s): {', '.join(args.tag)}")
