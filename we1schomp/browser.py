@@ -33,14 +33,14 @@ class Browser:
     ###
     def __init__(
         self,
-        grid_url: str,
+        selenium_url: str,
         wait_time: Tuple[float, float] = (1.0, 3.0),
     ):
         """Create a new Browser instance."""
         self._log = getLogger(__name__)
 
         self.wait_time = wait_time
-        self._driver = webdriver.Remote(command_executor=grid_url)
+        self._driver = webdriver.Remote(command_executor=selenium_url)
 
     ###
     def __enter__(self):
