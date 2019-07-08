@@ -69,14 +69,12 @@ def run() -> None:
         cx = os.getenv("CHOMP_GOOGLE_CX")
         key = os.getenv("CHOMP_GOOGLE_KEY")
 
-        if (not args.lynx_path or args.lynx_path == "") and (
-            not args.chrome_path or args.chrome_path == ""
-        ):
+        if not args.selenium_path or args.selenium_path == "":
             print("\u001b[31mError:\u001b[0m skipping responses, no browser specified.")
 
         elif (
-            args.chrome_path is not None
-            and args.chrome_path != ""
+            args.selenium_path is not None
+            and args.selenium_path != ""
             and (not cx or cx == "" or not key or key == "")
         ):
             print(
@@ -85,9 +83,7 @@ def run() -> None:
 
         else:
             with Browser(
-                lynx_path=args.lynx_path,
-                chrome_path=args.chrome_path,
-                chrome_log_path=args.chrome_log_path,
+                selenium_path=args.selenium_path,
                 wait_time=(args.min, args.max),
             ) as browser:
 
@@ -95,16 +91,12 @@ def run() -> None:
 
     if args.do_articles:
 
-        if (not args.lynx_path or args.lynx_path == "") and (
-            not args.chrome_path or args.chrome_path == ""
-        ):
+        if not args.selenium_path or args.selenium_path == "":
             print("\u001b[31mError:\u001b[0m skipping articles, no browser specified.")
 
         else:
             with Browser(
-                lynx_path=args.lynx_path,
-                chrome_path=args.chrome_path,
-                chrome_log_path=args.chrome_log_path,
+                selenium_path=args.selenium_path,
                 wait_time=(args.min, args.max),
             ) as browser:
 
@@ -202,16 +194,8 @@ def parse_args() -> argparse.Namespace:
     options.add_argument(
         "--max-wait", help="max browser wait time", default=3.0, dest="max", type=float
     )
-    options.add_argument("--lynx", help="lynx path", dest="lynx_path", type=str)
     options.add_argument(
-        "--chrome", help="chome driver path", dest="chrome_path", type=str
-    )
-    options.add_argument(
-        "--chrome-log",
-        help="chrome logfile path (def: ...\\chrome.log)",
-        default="chrome.log",
-        dest="chrome_log_path",
-        type=str,
+        "--selenium", help="selenium grid url", dest="selenium_path", type=str
     )
     options.add_argument(
         "--debug",
@@ -309,18 +293,12 @@ def task_list(args) -> None:
         print(f" ✓ Import articles from {args.article_in_path}")
     if args.do_responses:
         print(" ✓ Scrape sources for query search results")
-        if args.lynx_path is not None and args.lynx_path != "":
-            print(f"   Using Lynx at {args.lynx_path}")
-        if args.chrome_path is not None and args.chrome_path != "":
-            print(f"   Using Chrome Driver at {args.chrome_path}")
-            print(f"   Logging to {args.chrome_log_path}")
+        if args.selenium_path is not None and args.selenium_path != "":
+            print(f"   Using Selenium Grid at {args.selenium_path}")
     if args.do_articles:
         print(" ✓ Collect raw article XML/HTML from search results")
-        if args.lynx_path is not None and args.lynx_path != "":
-            print(f"   Using Lynx at {args.lynx_path}")
-        if args.chrome_path is not None and args.chrome_path != "":
-            print(f"   Using Chrome Driver at {args.chrome_path}")
-            print(f"   Logging to {args.chrome_log_path}")
+        if args.selenium_path is not None and args.selenium_path != "":
+            print(f"   Using Selenium Grid at {args.selenium_path}")
     if args.do_clean:
         print(" ✓ Collect article content from raw XML/HTML")
         print(f"   Using tag(s): {', '.join(args.tag)}")
