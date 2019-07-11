@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 
 """Scraping tools.
-
-Todo:
-  - Write unit tests.
 """
 
 from logging import getLogger

@@ -12,9 +12,9 @@ Browser.get() to collect from one URL at a time or Browser.get_batch() to queue
 up a larger collection task.
 
 Todo:
-    - Write unit tests.
     - Implement some form of security for the Selenium containers and make sure
         the Browser class is made aware of it (i.e. basicauth or equivalent).
+    - Reinforce exception handling.
 """
 
 import json
@@ -79,9 +79,6 @@ class Browser:
 
         Returns:
             True if ready, False if not ready.
-
-        Todo:
-            - Test & reinforce exception handling.
         """
         log = getLogger(__name__)
 
@@ -102,9 +99,6 @@ class Browser:
 
         Returns:
             Raw text content of the response.
-        
-        Todo:
-            - Test & reinforce exception handling.
         """
         log = getLogger(__name__)
 
@@ -146,9 +140,6 @@ class Browser:
 
         Returns:
             List of tuples pairing the URLs and with their raw text responses.
-
-        Todo:
-            - Test & reinforce exception handling.
         """
         log = getLogger(__name__)
 
@@ -193,9 +184,6 @@ def get(url: str, sleep_time: Tuple[float, float] = _DEFAULT_BROWSER_SLEEP) -> s
 
     Returns:
         Raw text content of the response.
-    
-    Todo:
-        - Test & reinforce exception handling.
     """
     log = getLogger(__name__)
 

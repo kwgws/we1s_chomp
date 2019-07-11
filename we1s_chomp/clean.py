@@ -4,7 +4,6 @@
 """Tools to process raw content.
 
 Todo:
-    - Write unit tests.
     - Merge with the tools in the preprocessor Document class.
 """
 
@@ -57,9 +56,6 @@ def clean_html(
 
     Returns:
         String with cleaned text content.
-
-    Todo:
-        - Write unit tests.
     """
     log = getLogger(__name__)
 
