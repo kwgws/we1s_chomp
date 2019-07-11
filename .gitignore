@@ -180,5 +180,6 @@ dmypy.json
 .vscode/
 
 # Misc.
-browser_test*.html
-simple_test*.html
+**/browser_test*.html
+**/simple_test*.html
+**/*_output.txt
