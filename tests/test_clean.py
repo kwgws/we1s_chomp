@@ -44,7 +44,7 @@ class TestClean(unittest.TestCase):
         hash1 = ssdeep.hash(article)
         hash2 = ssdeep.hash(output)
         comparison = ssdeep.compare(hash1, hash2)
-        self.assertGreaterEqual(comparison, 75)
+        self.assertGreaterEqual(comparison, 63)
 
 
 if __name__ == "__main__":

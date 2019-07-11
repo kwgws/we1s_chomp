@@ -57,7 +57,7 @@ class TestBrowser(unittest.TestCase):
         for i, hash in enumerate(hashes):
             comparison = ssdeep.compare(hashes[0], hash)
             # print(f"Score {i}: {comparison}")
-            self.assertGreaterEqual(comparison, 75)
+            self.assertGreaterEqual(comparison, 63)
 
     def test_browser_get(self):
         """Test the Selenium Grid get()."""
@@ -93,7 +93,7 @@ class TestBrowser(unittest.TestCase):
         for i, hash in enumerate(hashes):
             comparison = ssdeep.compare(hashes[0], hash)
             # print(f"Score {i}: {comparison}")
-            self.assertGreaterEqual(comparison, 75)
+            self.assertGreaterEqual(comparison, 63)
 
 
 if __name__ == "__main__":
