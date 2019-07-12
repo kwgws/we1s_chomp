@@ -22,25 +22,6 @@ _ARTICLES_PER_RESPONSE_PAGE = 10
 """Articles per page of response."""
 
 
-def get_url(base_url: str, term: str, prefix: str = "posts", page: int = 1) -> str:
-    """Create query URL for Wordpress API search.
-
-    Args:
-        - base_url: Site URL.
-        - term: Search term to use.
-        - prefix: Use "pages" or "posts".
-        - page: Result page to start at.
-
-    Returns:
-        URL for query.
-    """
-    return (
-        base_url.strip().rstrip("/").rstrip("?")  # Just in case...
-        + f"/{prefix}?"
-        + "&".join([f"search={term}", "sentence=1", f"page={page}"])
-    )
-
-
 def get_responses(
     base_url: str, term: str, url_stop_words: Set[str] = set(), browser: Browser = None
 ) -> List[Dict]:
@@ -58,9 +39,6 @@ def get_responses(
     """
     log = getLogger()
 
-    collected = 0
-    skipped = 0
-
     # Switch collector interface.
     if browser is not None and isinstance(browser, Browser):
         collector = browser.get
@@ -69,6 +47,7 @@ def get_responses(
 
     # Collect once for each Wordpress prefix.
     responses = []
+    skipped = 0
     for prefix in _PREFIXES:
 
         # Check for collected pages and URL stop words.
@@ -104,15 +83,33 @@ def get_responses(
                 }
             )
             url_stop_words.add(response["link"])
-            collected += 1
 
             # Get a new URL.
             url = get_url(base_url, prefix, term, page)
 
     log.info(
-        "Collected %i articles, skipped %i from %s." % (collected, skipped, base_url)
+        "Collected %i responses, %i skipped from %s." % (len(responses), skipped, base_url)
     )
     return responses
+
+
+def get_url(base_url: str, term: str, prefix: str = "posts", page: int = 1) -> str:
+    """Create query URL for Wordpress API search.
+
+    Args:
+        - base_url: Site URL.
+        - term: Search term to use.
+        - prefix: Use "pages" or "posts".
+        - page: Result page to start at.
+
+    Returns:
+        URL for query.
+    """
+    return (
+        base_url.strip().rstrip("/").rstrip("?")  # Just in case...
+        + f"/{prefix}?"
+        + "&".join([f"search={term}", "sentence=1", f"page={page}"])
+    )
 
 
 def is_wp_url(url: str) -> bool:
