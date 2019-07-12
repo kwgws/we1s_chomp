@@ -11,14 +11,14 @@ import dateparser
 
 from we1s_chomp.browser import Browser, get
 
-_API_SUFFIX = "/wp-json/wp/v2"
+API_SUFFIX = "wp-json/wp/v2"
 """Add this string to a URL to get Wordpress API."""
 
-_PREFIXES = ["pages", "posts"]
-"""Wordpress document types to collect."""
-
-_ARTICLES_PER_RESPONSE_PAGE = 10
+ARTICLES_PER_RESPONSE_PAGE = 10
 """Articles per page of response."""
+
+PREFIXES = ["pages", "posts"]
+"""Wordpress document types to collect."""
 
 
 def get_responses(
