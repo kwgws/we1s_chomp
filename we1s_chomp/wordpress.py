@@ -70,7 +70,7 @@ def get_responses(
 
             # If a list returns, ye've pages t' burn
             #   If a dict ye score, thar be pages no more
-            if not isinstance(response, list) or len(response) > 0:
+            if not isinstance(response, list) or not len(response) > 0:
                 continue
 
             # Save response.
