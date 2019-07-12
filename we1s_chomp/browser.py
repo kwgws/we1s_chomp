@@ -28,9 +28,6 @@ import requests
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 
-
-# Internal configuration parameters.
-
 _DEFAULT_BROWSER_TIMEOUT = 60.0
 """Default maximum time in seconds for the browser to await a response."""
 

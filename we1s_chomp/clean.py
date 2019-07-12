@@ -18,9 +18,6 @@ import regex as re
 from bs4 import BeautifulSoup
 from unidecode import unidecode
 
-
-# Internal configuration parameters.
-
 _DEFAULT_CONTENT_LENGTH = 75
 """Default length of tag content to save."""
 
