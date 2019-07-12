@@ -61,34 +61,35 @@ def get_responses(
         for _ in range(_ARTICLES_PER_RESPONSE_PAGE):
 
             # Collect the result!
-            response = collector(url)
+            res = collector(url)
             try:
-                response = json.load(response)
+                res = json.loads(res)
             except json.JSONDecodeError:
                 log.warning("Could not decode JSON for url: %s." % url)
                 continue
 
             # If a list returns, ye've pages t' burn
             #   If a dict ye score, thar be pages no more
-            if not isinstance(response, list) or not len(response) > 0:
+            if not isinstance(res, list) or not len(res) > 0:
                 continue
 
             # Save response.
             responses.append(
                 {
-                    "pub_date": dateparser.parse(response["date"]),
-                    "content_unscrubbed": response["content"]["rendered"],
-                    "title": response["title"]["rendered"],
-                    "url": response["link"],
+                    "pub_date": dateparser.parse(res["date"]),
+                    "content_unscrubbed": res["content"]["rendered"],
+                    "title": res["title"]["rendered"],
+                    "url": res["link"],
                 }
             )
-            url_stop_words.add(response["link"])
+            url_stop_words.add(res["link"])
 
             # Get a new URL.
             url = get_url(base_url, prefix, term, page)
 
     log.info(
-        "Collected %i responses, %i skipped from %s." % (len(responses), skipped, base_url)
+        "Collected %i responses, %i skipped from %s."
+        % (len(responses), skipped, base_url)
     )
     return responses
 
@@ -112,6 +113,42 @@ def get_url(base_url: str, term: str, prefix: str = "posts", page: int = 1) -> s
     )
 
 
-def is_wp_url(url: str) -> bool:
-    """Returns True if URL is a Wordpress API."""
-    return _API_SUFFIX in url
+def is_api_available(url: str, browser: Browser = None) -> bool:
+    """Check for an open Wordpress API.
+    
+    Args:
+        - url: Base site URL.
+        - browser: Selenium configuration information. Set None to use Requests
+            module.
+    
+    Returns:
+        True if Wordpress API is available.
+    """
+    log = getLogger()
+
+    # Switch collector interface.
+    if browser is not None and isinstance(browser, Browser):
+        collector = browser.get
+    else:
+        collector = get
+
+    # Get JSON data from API.
+    api_url = f"{url}/{_API_SUFFIX}"
+    res = collector(api_url)
+
+    # Check for prefix endpoints.
+    try:
+        res = json.loads(res)
+        for prefix in _PREFIXES:
+            if (
+                "search"
+                not in res["routes"]["\/wp\/v2\/" + prefix]["endpoints"]["args"].keys()
+            ):
+                log.debug("No Wordpress API found for %s." % url)
+                return False
+    except AttributeError or KeyError or json.JSONDecodeError:
+        log.debug("No Wordpress API found for %s." % url)
+        return False
+
+    log.info("Found Wordpress API at %s." % api_url)
+    return True
