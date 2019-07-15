@@ -84,10 +84,10 @@ class TestClean(unittest.TestCase):
             with open(result_filename.format(i=i), encoding="utf-8") as txtfile:
                 hashes.append(ssdeep.hash(txtfile.read()))
         
-        prev_hash = hashes[0]
-        for hash in hashes[1:]:
-            print(ssdeep.compare(prev_hash, hash))
-            prev_hash = hash
+        #prev_hash = hashes[0]
+        #for hash in hashes[1:]:
+        #    print(ssdeep.compare(prev_hash, hash))
+        #    prev_hash = hash
 
 
     def test_clean(self):
