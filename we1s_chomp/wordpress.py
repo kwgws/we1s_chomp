@@ -141,11 +141,11 @@ def is_api_available(url: str, browser: Browser = None) -> bool:
         for prefix in PREFIXES:
             if (
                 "search"
-                not in res["routes"]["\/wp\/v2\/" + prefix]["endpoints"]["args"].keys()
+                not in res["routes"]["/wp/v2/" + prefix]["endpoints"][0]["args"].keys()
             ):
                 log.debug("No Wordpress API found for %s." % url)
                 return False
-    except AttributeError or KeyError or json.JSONDecodeError:
+    except (AttributeError, KeyError, json.JSONDecodeError):
         log.debug("No Wordpress API found for %s." % url)
         return False
 
