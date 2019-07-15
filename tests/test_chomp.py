@@ -34,7 +34,9 @@ class TestChomp(unittest.TestCase):
             html = txtfile.read()
         html_hash = ssdeep.hash(html)
 
-        result = browser.get("https://we1s.ucsb.edu/research_post/reading-in-santa-barbara-future-building-the-utopian-university/")
+        result = browser.get(
+            "https://we1s.ucsb.edu/research_post/reading-in-santa-barbara-future-building-the-utopian-university/"
+        )
         result_hash = ssdeep.hash(result)
 
         clean_content = clean.clean_html(result)
@@ -65,7 +67,9 @@ class TestChomp(unittest.TestCase):
         br = browser.Browser("http://harbor.english.ucsb.edu:4444")
         assert br.is_grid_ready()
 
-        result = br.get("https://we1s.ucsb.edu/research_post/reading-in-santa-barbara-future-building-the-utopian-university/")
+        result = br.get(
+            "https://we1s.ucsb.edu/research_post/reading-in-santa-barbara-future-building-the-utopian-university/"
+        )
         result_hash = ssdeep.hash(result)
 
         clean_content = clean.clean_html(result)

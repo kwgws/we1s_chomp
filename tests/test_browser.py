@@ -71,10 +71,7 @@ class TestBrowser(unittest.TestCase):
 
         # Get responses.
         for i, result in enumerate(
-            [
-                unidecode(r[1])
-                for r in br.get_batch(itertools.repeat(_SOURCE_URL, 6), 3)
-            ]
+            [unidecode(r[1]) for r in br.get_batch(itertools.repeat(_SOURCE_URL, 6), 3)]
         ):
             # print(f'HTML response: "{result[:50]}..."')
 

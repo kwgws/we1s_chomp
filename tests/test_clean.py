@@ -25,7 +25,7 @@ class TestClean(unittest.TestCase):
             html = htmlfile.read()
 
         result_filename = os.path.join(os.getcwd(), "tests", "data", "clean{i}.txt")
-        
+
         # Throw out tags we don't need.
         soup = clean.BeautifulSoup(html, "html5lib")
         with clean.suppress(AttributeError):
@@ -35,7 +35,7 @@ class TestClean(unittest.TestCase):
             soup.img.extract()
             soup.nav.extract()
             soup.script.extract()
-        
+
         # Take all the content tags, default <p>, and mush together the ones that
         # are over the specified length. This seems to work (mostly), but if we're
         # getting bad content for a site we should consider tweaking the formula or
@@ -50,12 +50,12 @@ class TestClean(unittest.TestCase):
         content = clean.html.unescape(content)
         with open(result_filename.format(i=1), "w", encoding="utf-8") as txtfile:
             txtfile.write(content)
-        
+
         # Convert to UTF-8.
         content = clean.unidecode(content)
         with open(result_filename.format(i=2), "w", encoding="utf-8") as txtfile:
             txtfile.write(content)
-        
+
         # Remove HTML tags and leftover URLs.
         content = clean.re.sub(clean.REGEX_HTML_CLEAN, "", content)
         with open(result_filename.format(i=3), "w", encoding="utf-8") as txtfile:
@@ -66,12 +66,11 @@ class TestClean(unittest.TestCase):
         for i in range(4):
             with open(result_filename.format(i=i), encoding="utf-8") as txtfile:
                 hashes.append(ssdeep.hash(txtfile.read()))
-        
+
         prev_hash = hashes[0]
         for hash in hashes[1:]:
             # print(ssdeep.compare(prev_hash, hash))
             prev_hash = hash
-
 
     def test_clean(self):
         """Test clean_html().
