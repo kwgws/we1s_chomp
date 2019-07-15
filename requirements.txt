@@ -5,4 +5,4 @@ beautifulsoup4>=4.7
 sqlalchemy>=1.3.5
 unidecode>=1.1
 selenium>=1.25
-html5lib>=1pippi
+html5lib>=1
