@@ -45,49 +45,32 @@ class TestClean(unittest.TestCase):
             content += " " + str(tag.text)
         with open(result_filename.format(i=0), "w", encoding="utf-8") as txtfile:
             txtfile.write(content)
+
+        # Expose HTML tags.
+        content = clean.html.unescape(content)
+        with open(result_filename.format(i=1), "w", encoding="utf-8") as txtfile:
+            txtfile.write(content)
         
         # Convert to UTF-8.
         content = clean.unidecode(content)
-        with open(result_filename.format(i=1), "w", encoding="utf-8") as txtfile:
+        with open(result_filename.format(i=2), "w", encoding="utf-8") as txtfile:
             txtfile.write(content)
-
-        # Get rid of HTML tags.
-        # content = clean.bleach.clean(content, tags=[], strip=True)
-        # with open(result_filename.format(i=2), "w", encoding="utf-8") as txtfile:
-        #     txtfile.write(content)
-
-        # Get rid of &lt;, etc.
-        content = clean.html.unescape(content)
+        
+        # Remove HTML tags and leftover URLs.
+        content = clean.re.sub(clean.REGEX_HTML_CLEAN, "", content)
         with open(result_filename.format(i=3), "w", encoding="utf-8") as txtfile:
-            txtfile.write(content)
-
-        # Get rid of URL strings (common in blog posts, etc.), irregular
-        # punctuation, unescaped Markdown, bb-code, etc.
-        # content = clean.re.sub(clean.REGEX_HTML_CLEAN, "", content)
-        # with open(result_filename.format(i=4), "w", encoding="utf-8") as txtfile:
-        #     txtfile.write(content)
-
-        # Get rid of non-printable characters (LF, CR, etc.)
-        # content = "".join([c for c in content if c in clean.string.printable])
-        # with open(result_filename.format(i=5), "w", encoding="utf-8") as txtfile:
-        #     txtfile.write(content)
-
-        # Final cleanup.
-        content = " ".join(content.split())
-        content = content.replace(" .", ".")  # ??
-        with open(result_filename.format(i=6), "w", encoding="utf-8") as txtfile:
             txtfile.write(content)
 
         # Hash results and compare.
         hashes = []
-        for i in range(7):
+        for i in range(4):
             with open(result_filename.format(i=i), encoding="utf-8") as txtfile:
                 hashes.append(ssdeep.hash(txtfile.read()))
         
-        #prev_hash = hashes[0]
-        #for hash in hashes[1:]:
-        #    print(ssdeep.compare(prev_hash, hash))
-        #    prev_hash = hash
+        prev_hash = hashes[0]
+        for hash in hashes[1:]:
+            # print(ssdeep.compare(prev_hash, hash))
+            prev_hash = hash
 
 
     def test_clean(self):

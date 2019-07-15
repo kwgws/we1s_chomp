@@ -11,6 +11,7 @@ from contextlib import suppress
 from logging import getLogger
 from typing import List
 
+import regex as re
 from bs4 import BeautifulSoup
 from unidecode import unidecode
 
@@ -20,8 +21,8 @@ _DEFAULT_CONTENT_LENGTH = 75
 _DEFAULT_CONTENT_TAGS = ["p", "div", "span"]
 """Default ordered list of tags to check for content."""
 
-# REGEX_HTML_CLEAN = re.compile(r"http(.*?)\s|[^a-zA-Z0-9\s\.\,\!\"\'\-\:\;\p{Sc}]")
-"""Regex string to remove unnecessary characters."""
+REGEX_HTML_CLEAN = re.compile(r"<(.*?)>|(http.*?)\s")
+"""Regex string to remove HTML tags and URLs."""
 
 
 # Function to "clean" an HTML document.
@@ -75,15 +76,14 @@ def clean_html(
         for tag in [t for t in soup.find_all(tag_type) if len(t.text) > length]:
             content += " " + str(tag.text)
 
-        # Convert to UTF-8.
-        content = unidecode(content)
-
-        # Get rid of HTML tags.
+        # Convert to HTML.
         content = html.unescape(content)
 
-        # Final cleanup.
-        content = " ".join(content.split())
-        content = content.replace(" .", ".")  # ??
+        # Get rid of special characters.
+        content = unidecode(content)
+
+        # Remove HTML tags and leftover URLs.
+        content = re.sub(REGEX_HTML_CLEAN, "", content)
 
         if content != "":
             log.debug("Successfully cleaned HTML string: %s" % stub)
