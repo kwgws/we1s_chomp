@@ -47,17 +47,17 @@ def get_responses(
     # Collect once for each Wordpress prefix.
     responses = []
     skipped = 0
-    for prefix in _PREFIXES:
+    for prefix in PREFIXES:
 
         # Check for collected pages and URL stop words.
         page = 1
         url = get_url(base_url, prefix, term, page)
         while url_stop_words in url:
             page += 1
-            skipped += _ARTICLES_PER_RESPONSE_PAGE
+            skipped += ARTICLES_PER_RESPONSE_PAGE
             get_url(base_url, prefix, term, page)
 
-        for _ in range(_ARTICLES_PER_RESPONSE_PAGE):
+        for _ in range(ARTICLES_PER_RESPONSE_PAGE):
 
             # Collect the result!
             res = collector(url)
@@ -132,13 +132,13 @@ def is_api_available(url: str, browser: Browser = None) -> bool:
         collector = get
 
     # Get JSON data from API.
-    api_url = f"{url}/{_API_SUFFIX}"
+    api_url = f"{url}/{API_SUFFIX}"
     res = collector(api_url)
 
     # Check for prefix endpoints.
     try:
         res = json.loads(res)
-        for prefix in _PREFIXES:
+        for prefix in PREFIXES:
             if (
                 "search"
                 not in res["routes"]["\/wp\/v2\/" + prefix]["endpoints"]["args"].keys()

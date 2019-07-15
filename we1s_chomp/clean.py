@@ -7,13 +7,10 @@ Todo:
 """
 
 import html
-import string
 from contextlib import suppress
 from logging import getLogger
 from typing import List
 
-import bleach
-import regex as re
 from bs4 import BeautifulSoup
 from unidecode import unidecode
 
@@ -23,7 +20,7 @@ _DEFAULT_CONTENT_LENGTH = 75
 _DEFAULT_CONTENT_TAGS = ["p", "div", "span"]
 """Default ordered list of tags to check for content."""
 
-REGEX_HTML_CLEAN = re.compile(r"http(.*?)\s|[^a-zA-Z0-9\s\.\,\!\"\'\-\:\;\p{Sc}]")
+# REGEX_HTML_CLEAN = re.compile(r"http(.*?)\s|[^a-zA-Z0-9\s\.\,\!\"\'\-\:\;\p{Sc}]")
 """Regex string to remove unnecessary characters."""
 
 
@@ -82,17 +79,7 @@ def clean_html(
         content = unidecode(content)
 
         # Get rid of HTML tags.
-        content = bleach.clean(content, tags=[], strip=True)
-
-        # Get rid of &lt;, etc.
         content = html.unescape(content)
-
-        # Get rid of URL strings (common in blog posts, etc.), irregular
-        # punctuation, unescaped Markdown, bb-code, etc.
-        content = re.sub(REGEX_HTML_CLEAN, "", content)
-
-        # Get rid of non-printable characters (LF, CR, etc.)
-        content = "".join([c for c in content if c in string.printable])
 
         # Final cleanup.
         content = " ".join(content.split())
