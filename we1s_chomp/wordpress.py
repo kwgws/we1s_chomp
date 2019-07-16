@@ -22,13 +22,18 @@ PREFIXES = ["pages", "posts"]
 
 
 def get_responses(
-    base_url: str, term: str, url_stop_words: Set[str] = set(), browser: Browser = None
+    base_url: str,
+    term: str,
+    page_limit: int = -1,
+    url_stop_words: Set[str] = set(),
+    browser: Browser = None,
 ) -> List[Dict]:
     """Chomp query using Wordpress API.
 
     Args:
         - base_url: Base site URL.
         - term: Search term.
+        - article_limit: Stop after this # of pages, or -1 for no limit.
         - url_stop_words: Skip all URLs that contain a word from this set.
         - browser: Selenium configuration information. Set None to use Requests
             module.
@@ -57,20 +62,21 @@ def get_responses(
             skipped += ARTICLES_PER_RESPONSE_PAGE
             get_url(base_url, prefix, term, page)
 
-        for _ in range(ARTICLES_PER_RESPONSE_PAGE):
+        while page_limit == -1 or page < page_limit:
 
             # Collect the result!
             res = collector(url)
             try:
                 res = json.loads(res)
             except json.JSONDecodeError:
-                log.warning("Could not decode JSON for url: %s." % url)
-                continue
+                log.warning("Could not decode JSON response from %s." % url)
+                break
 
             # If a list returns, ye've pages t' burn
             #   If a dict ye score, thar be pages no more
             if not isinstance(res, list) or not len(res) > 0:
-                continue
+                log.debug("Out of pages or no content at %s." % url)
+                break
 
             # Save response.
             responses.append(
@@ -84,6 +90,7 @@ def get_responses(
             url_stop_words.add(res["link"])
 
             # Get a new URL.
+            page += 1
             url = get_url(base_url, prefix, term, page)
 
     log.info(
@@ -112,7 +119,9 @@ def get_url(base_url: str, term: str, prefix: str = "posts", page: int = 1) -> s
     )
 
 
-def is_api_available(url: str, browser: Browser = None) -> bool:
+def is_api_available(
+    url: str, prefixes: List[str] = PREFIXES, browser: Browser = None
+) -> bool:
     """Check for an open Wordpress API.
     
     Args:
@@ -136,18 +145,24 @@ def is_api_available(url: str, browser: Browser = None) -> bool:
     res = collector(api_url)
 
     # Check for prefix endpoints.
-    try:
-        res = json.loads(res)
-        for prefix in PREFIXES:
-            if (
-                "search"
-                not in res["routes"]["/wp/v2/" + prefix]["endpoints"][0]["args"].keys()
-            ):
+    for prefix in prefixes:
+        try:
+            routes = json.loads(res)["routes"]["/wp/v2/" + prefix]
+
+            # Is the GET method available for this route?
+            if "GET" not in routes["methods"]:
                 log.debug("No Wordpress API found for %s." % url)
                 return False
-    except (AttributeError, KeyError, json.JSONDecodeError):
-        log.debug("No Wordpress API found for %s." % url)
-        return False
+
+            # Is the search argument available?
+            endpoint = next(e for e in routes["endpoints"] if "GET" in e["methods"])
+            if "search" not in endpoint["args"].keys():
+                log.debug("Search not available for Wordpress API at %s." % url)
+                return False
+
+        except (AttributeError, KeyError, json.JSONDecodeError):
+            log.debug("No Wordpress API found for %s." % url)
+            return False
 
     log.info("Found Wordpress API at %s." % api_url)
     return True

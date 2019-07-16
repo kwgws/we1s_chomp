@@ -183,3 +183,4 @@ dmypy.json
 browser_test*.html
 simple_test*.html
 *_output.txt
+scratch.txt
