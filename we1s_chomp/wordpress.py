@@ -4,75 +4,85 @@
 """
 
 import json
+from datetime import datetime
 from logging import getLogger
-from typing import Dict, List, Set
+from typing import Dict, Iterator, Set
 
 import dateparser
 
+from we1s_chomp import clean, utils
 from we1s_chomp.browser import Browser, get
 
-API_SUFFIX = "wp-json/wp/v2"
+
+################################################################################
+# Internal configuration parameters.                                           #
+################################################################################
+
+
+_API_SUFFIX = "wp-json/wp/v2"
 """Add this string to a URL to get Wordpress API."""
 
-ARTICLES_PER_RESPONSE_PAGE = 10
-"""Articles per page of response."""
-
-ENDPOINTS = ["pages", "posts"]
+_DEFAULT_ENDPOINTS = {"pages", "posts"}
 """Wordpress document types to collect."""
 
+_DEFAULT_PAGE_LIMIT = -1
+"""Stop after this # of pages, or -1 for no limit."""
 
+
+################################################################################
+# Collector functions.                                                         #
+################################################################################
+
+
+# Step 1: Get search responses.
 def get_responses(
-    base_url: str,
     term: str,
-    page_limit: int = -1,
-    url_stop_words: List[str] = [],
+    base_url: str,
+    endpoints: Set[str] = _DEFAULT_ENDPOINTS,
     url_stops: Set[str] = {},
-    browser: Browser = None,
-    endpoints: List[str] = ENDPOINTS,
-) -> List[Dict]:
+    url_stop_words: Set[str] = {},
+    page_limit: int = _DEFAULT_PAGE_LIMIT,
+    browser: Optional[Browser] = None,
+) -> Iterator[str]:
     """Chomp query using Wordpress API.
 
     Args:
-        - base_url: Base site URL.
         - term: Search term.
-        - article_limit: Stop after this # of pages, or -1 for no limit.
-        - url_stop_words: Skip all URLs that contain a word from this set.
+        - base_url: Base site URL.
+        - endpoints: Wordpress endpoints.
         - url_stops: Skip these URLs altogether. This will be modified with
             each additional result we find.
+        - url_stop_words: Skip all URLs that contain a word from this set.
+        - page_limit: Stop after this # of pages, or -1 for no limit.
         - browser: Selenium configuration information. Set None to use Requests
             module.
-        - endpoints: Wordpress endpoints.
 
     Returns:
-        List of collected response metadata.
+        Generator continaing formatted JSON strings with response data.
     """
     log = getLogger()
 
     # Switch collector interface.
-    if browser is not None and isinstance(browser, Browser):
-        collector = browser.get
-    else:
-        collector = get
+    collector = utils.get_interface(browser)
 
     # Collect once for each Wordpress endpoint.
-    results = []
+    count = 0
     skipped = 0
     for endpoint in endpoints:
 
         # Check for collected pages and URL stop words.
         page = 1
-        url = get_url(base_url, term, page, endpoint)
-        while (
-            url in url_stop_words
-            or next([s for s in url_stop_words if s in url], None) is not None
-        ):
+        url = get_url(term, base_url, endpoint, page)
+        while utils.is_url_ok(url, url_stops, url_stop_words):
+            log.info("Skipping %s." % url)
             page += 1
-            skipped += ARTICLES_PER_RESPONSE_PAGE
-            get_url(base_url, term, page, endpoint)
+            skipped += 1
+            get_url(term, base_url, endpoint, page)
 
-        while page_limit == -1 or page < page_limit:
+        # Stop after page limit, if set. Otherwise, onward and upward!
+        while page_limit == -1 or page <= page_limit:
 
-            # Collect the result!
+            # Collect the result.
             res = collector(url)
             try:
                 res = json.loads(res)
@@ -83,55 +93,119 @@ def get_responses(
             # If a list returns, ye've pages t' burn
             #   If a dict ye score, thar be pages no more
             if not isinstance(res, list) or not len(res) > 0:
-                log.debug("Out of pages or no content at %s." % url)
+                log.info("Out of pages or no content at %s." % url)
                 break
 
             # Save response.
-            for result in res:
-                results.append(
-                    {
-                        "pub_date": dateparser.parse(result["date"]),
-                        "content_unscrubbed": result["content"]["rendered"],
-                        "title": result["title"]["rendered"],
-                        "url": result["link"],
-                    }
-                )
-                url_stops.add(result["link"])
+            yield json.dumps(res)
+            url_stops.add(url)
+            count += 1
 
             # Get a new URL.
             page += 1
-            url = get_url(base_url, term, page, endpoint)
+            url = get_url(term, base_url, endpoint, page)
 
     log.info(
-        "Collected %i responses, %i skipped from %s."
-        % (len(results), skipped, base_url)
+        "Collected %i responses (%i skipped) from %s with Wordpress API."
+        % (count, skipped, base_url)
     )
-    return results
 
 
-def get_url(base_url: str, term: str, page: int = 1, endpoint: str = "posts") -> str:
+# Step 2: Get metadata & content from responses.
+def get_metadata(
+    response: str,
+    date_range: Tuple[datetime, datetime],
+    url_stops: Set[str] = {},
+    url_stop_words: Set[str] = {},
+) -> Optional[Iterator[Dict]]:
+    """Collect metadata from Wordpress API response.
+
+    Args:
+        - response: Raw JSON string of response data.
+        - date_range: Start and end dates for query.
+        - url_stops: Skip these URLs altogether. This will be modified with
+            each additional result we find.
+        - url_stop_words: Skip all URLs that contain a word from this set.
+
+    Returns:
+        Generator containing article metadata, None on JSON error.
+
+    Todo:
+        Error checking for keys in response JSON.
+    """
+    log = getLogger(__name__)
+
+    # Parse JSON response string.
+    try:
+        response = json.loads(response)
+    except json.JSONDecodeError:
+        log.warning('Could not decode JSON response "%s"' % utils.get_stub(response))
+        return None
+
+    # Loop over the articles in the response and parse metadata.
+    count = 0
+    skipped = 0
+    for result in response:
+
+        # Check for a URL stop.
+        url = result["link"]
+        if not utils.is_url_ok(url, url_stops, url_stop_words):
+            log.info("Skipping %s (URL in stop list)." % url)
+            skipped += 1
+            continue
+
+        # Check for date range.
+        date = utils.parse_date(result["date"], date_range)
+        if not date:
+            log.info("Skipping %s (No date or out of date range)." % url)
+            skipped += 1
+            continue
+
+        # Scrape content.
+        content_raw = result["content"]["rendered"]
+
+        yield {
+            "content": clean.clean_html(content_raw),
+            "content_raw": content_raw,
+            "pub_date": date,
+            "title": result["title"]["rendered"],
+            "url": url,
+        }
+        url_stops.add(url)
+        count += 1
+
+    log.info("Collected %i articles (%i skipped)." % (count, skipped))
+
+
+################################################################################
+# Helper functions.                                                            #
+################################################################################
+
+
+def get_url(term: str, base_url: str, endpoint: str = "posts", page: int = 1) -> str:
     """Create query URL for Wordpress API search.
 
     Args:
-        - base_url: Site URL.
         - term: Search term to use.
-        - page: Result page to start at.
+        - base_url: Site URL.
         - endpoint: Wordpress endpoint.
+        - page: Result page to start at.
 
     Returns:
         URL for query.
     """
     url = (
         base_url.strip().rstrip("/").rstrip("?")  # Just in case...
-        + f"/{API_SUFFIX}/{endpoint}?"
+        + f"/{_API_SUFFIX}"
+        + f"/{endpoint}"
+        + "?"
         + "&".join([f"search={term}", "sentence=1", f"page={page}"])
     )
-    print(url)
     return url
 
 
 def is_api_available(
-    url: str, browser: Browser = None, endpoints: List[str] = ENDPOINTS
+    url: str, browser: Browser = None, endpoints: Set[str] = _DEFAULT_ENDPOINTS
 ) -> bool:
     """Check for an open Wordpress API.
     
@@ -153,7 +227,7 @@ def is_api_available(
         collector = get
 
     # Get JSON data from API.
-    api_url = f"{url}/{API_SUFFIX}"
+    api_url = f"{url}/{_API_SUFFIX}"
     res = collector(api_url)
 
     # Check for endpoint endpoints.

@@ -15,17 +15,29 @@ import regex as re
 from bs4 import BeautifulSoup
 from unidecode import unidecode
 
+from we1s_chomp import utils
+
+
+################################################################################
+# Internal configuration parameters.                                           #
+################################################################################
+
+
 _DEFAULT_CONTENT_LENGTH = 75
 """Default length of tag content to save."""
 
 _DEFAULT_CONTENT_TAGS = ["p", "div", "span"]
 """Default ordered list of tags to check for content."""
 
-REGEX_HTML_CLEAN = re.compile(r"<(.*?)>|(http.*?)\s")
+_REGEX_HTML_CLEAN = re.compile(r"<(.*?)>|(http.*?)\s")
 """Regex string to remove HTML tags and URLs."""
 
 
-# Function to "clean" an HTML document.
+################################################################################
+# Cleaning functions.                                                          #
+################################################################################
+
+
 def clean_html(
     html_input: str,
     length: int = _DEFAULT_CONTENT_LENGTH,
@@ -52,9 +64,6 @@ def clean_html(
         String with cleaned text content.
     """
     log = getLogger(__name__)
-
-    # Keep a stub version of the input for logging.
-    stub = html_input[:75] + "..." if len(html_input) > 75 else html_input
 
     # Throw out tags we don't need.
     soup = BeautifulSoup(html_input, "html5lib")
@@ -83,11 +92,11 @@ def clean_html(
         content = unidecode(content)
 
         # Remove HTML tags and leftover URLs.
-        content = re.sub(REGEX_HTML_CLEAN, "", content)
+        content = re.sub(_REGEX_HTML_CLEAN, "", content)
 
         if content != "":
-            log.debug("Successfully cleaned HTML string: %s" % stub)
+            log.debug("Successfully cleaned HTML string: %s" % utils.get_stub(html_input))
             return content
 
-    log.warning("No content found in HTML string: %s" % stub)
+    log.warning("No content found in HTML string: %s" % utils.get_stub(html_input))
     return ""

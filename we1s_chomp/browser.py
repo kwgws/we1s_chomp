@@ -27,6 +27,12 @@ import requests
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 
+
+################################################################################
+# Internal configuration parameters.                                           #
+################################################################################
+
+
 _DEFAULT_BROWSER_TIMEOUT = 60.0
 """Default maximum time in seconds for the browser to await a response."""
 
@@ -36,11 +42,16 @@ _DEFAULT_BROWSER_SLEEP = (1.0, 3.0)
 _DEFAULT_NUM_BATCH_WORKERS = 1
 """Default number of worker threads to use for batch collection."""
 
-HUB_URL_SUFFIX = "/wd/hub"
+_HUB_URL_SUFFIX = "/wd/hub"
 """Suffix for Grid URL to get at JSON control interface."""
 
-HUB_STATUS_URL_SUFFIX = "/wd/hub/status"
+_HUB_STATUS_URL_SUFFIX = "/wd/hub/status"
 """Suffix for Grid URL to get at status report JSON."""
+
+
+################################################################################
+# Browser class.                                                               #
+################################################################################
 
 
 class Browser:
@@ -79,7 +90,7 @@ class Browser:
         log = getLogger(__name__)
 
         try:
-            response = requests.get(self.hub_url + HUB_STATUS_URL_SUFFIX).json()
+            response = requests.get(self.hub_url + _HUB_STATUS_URL_SUFFIX).json()
 
         except requests.RequestException as e:
             log.error("Error querying Selenium Grid status: %s" % e.msg)
@@ -108,7 +119,7 @@ class Browser:
 
         try:
             driver = webdriver.Remote(
-                command_executor=self.hub_url + HUB_URL_SUFFIX,
+                command_executor=self.hub_url + _HUB_URL_SUFFIX,
                 desired_capabilities={"browserName": "chrome"},
             )
             driver.get(url)
@@ -154,6 +165,11 @@ class Browser:
             return None
 
         return responses
+
+
+################################################################################
+# Helper functions for Browser class.                                          #
+################################################################################
 
 
 def sleep(sleep_time: Tuple[float, float] = _DEFAULT_BROWSER_SLEEP) -> float:
