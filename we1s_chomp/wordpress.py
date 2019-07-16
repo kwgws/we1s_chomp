@@ -50,17 +50,17 @@ def get_responses(
         collector = get
 
     # Collect once for each Wordpress prefix.
-    responses = []
+    results = []
     skipped = 0
     for prefix in PREFIXES:
 
         # Check for collected pages and URL stop words.
         page = 1
-        url = get_url(base_url, prefix, term, page)
-        while url_stop_words in url:
+        url = get_url(base_url, term, prefix, page)
+        while url in url_stop_words:
             page += 1
             skipped += ARTICLES_PER_RESPONSE_PAGE
-            get_url(base_url, prefix, term, page)
+            get_url(base_url, term, prefix, page)
 
         while page_limit == -1 or page < page_limit:
 
@@ -79,25 +79,26 @@ def get_responses(
                 break
 
             # Save response.
-            responses.append(
-                {
-                    "pub_date": dateparser.parse(res["date"]),
-                    "content_unscrubbed": res["content"]["rendered"],
-                    "title": res["title"]["rendered"],
-                    "url": res["link"],
-                }
-            )
-            url_stop_words.add(res["link"])
+            for result in res:
+                results.append(
+                    {
+                        "pub_date": dateparser.parse(result["date"]),
+                        "content_unscrubbed": result["content"]["rendered"],
+                        "title": result["title"]["rendered"],
+                        "url": result["link"],
+                    }
+                )
+                url_stop_words.add(result["link"])
 
             # Get a new URL.
             page += 1
-            url = get_url(base_url, prefix, term, page)
+            url = get_url(base_url, term, prefix, page)
 
     log.info(
         "Collected %i responses, %i skipped from %s."
-        % (len(responses), skipped, base_url)
+        % (len(results), skipped, base_url)
     )
-    return responses
+    return results
 
 
 def get_url(base_url: str, term: str, prefix: str = "posts", page: int = 1) -> str:
@@ -112,11 +113,13 @@ def get_url(base_url: str, term: str, prefix: str = "posts", page: int = 1) -> s
     Returns:
         URL for query.
     """
-    return (
+    url = (
         base_url.strip().rstrip("/").rstrip("?")  # Just in case...
-        + f"/{prefix}?"
+        + f"/{API_SUFFIX}/{prefix}?"
         + "&".join([f"search={term}", "sentence=1", f"page={page}"])
     )
+    print(url)
+    return url
 
 
 def is_api_available(
