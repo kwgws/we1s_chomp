@@ -5,7 +5,7 @@
 
 import json
 from logging import getLogger
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set
 
 import dateparser
 
@@ -17,7 +17,7 @@ API_SUFFIX = "wp-json/wp/v2"
 ARTICLES_PER_RESPONSE_PAGE = 10
 """Articles per page of response."""
 
-PREFIXES = ["pages", "posts"]
+ENDPOINTS = ["pages", "posts"]
 """Wordpress document types to collect."""
 
 
@@ -25,8 +25,10 @@ def get_responses(
     base_url: str,
     term: str,
     page_limit: int = -1,
-    url_stop_words: Set[str] = set(),
+    url_stop_words: List[str] = [],
+    url_stops: Set[str] = {},
     browser: Browser = None,
+    endpoints: List[str] = ENDPOINTS,
 ) -> List[Dict]:
     """Chomp query using Wordpress API.
 
@@ -35,8 +37,11 @@ def get_responses(
         - term: Search term.
         - article_limit: Stop after this # of pages, or -1 for no limit.
         - url_stop_words: Skip all URLs that contain a word from this set.
+        - url_stops: Skip these URLs altogether. This will be modified with
+            each additional result we find.
         - browser: Selenium configuration information. Set None to use Requests
             module.
+        - endpoints: Wordpress endpoints.
 
     Returns:
         List of collected response metadata.
@@ -49,18 +54,21 @@ def get_responses(
     else:
         collector = get
 
-    # Collect once for each Wordpress prefix.
+    # Collect once for each Wordpress endpoint.
     results = []
     skipped = 0
-    for prefix in PREFIXES:
+    for endpoint in endpoints:
 
         # Check for collected pages and URL stop words.
         page = 1
-        url = get_url(base_url, term, prefix, page)
-        while url in url_stop_words:
+        url = get_url(base_url, term, page, endpoint)
+        while (
+            url in url_stop_words
+            or next([s for s in url_stop_words if s in url], None) is not None
+        ):
             page += 1
             skipped += ARTICLES_PER_RESPONSE_PAGE
-            get_url(base_url, term, prefix, page)
+            get_url(base_url, term, page, endpoint)
 
         while page_limit == -1 or page < page_limit:
 
@@ -88,11 +96,11 @@ def get_responses(
                         "url": result["link"],
                     }
                 )
-                url_stop_words.add(result["link"])
+                url_stops.add(result["link"])
 
             # Get a new URL.
             page += 1
-            url = get_url(base_url, term, prefix, page)
+            url = get_url(base_url, term, page, endpoint)
 
     log.info(
         "Collected %i responses, %i skipped from %s."
@@ -101,21 +109,21 @@ def get_responses(
     return results
 
 
-def get_url(base_url: str, term: str, prefix: str = "posts", page: int = 1) -> str:
+def get_url(base_url: str, term: str, page: int = 1, endpoint: str = "posts") -> str:
     """Create query URL for Wordpress API search.
 
     Args:
         - base_url: Site URL.
         - term: Search term to use.
-        - prefix: Use "pages" or "posts".
         - page: Result page to start at.
+        - endpoint: Wordpress endpoint.
 
     Returns:
         URL for query.
     """
     url = (
         base_url.strip().rstrip("/").rstrip("?")  # Just in case...
-        + f"/{API_SUFFIX}/{prefix}?"
+        + f"/{API_SUFFIX}/{endpoint}?"
         + "&".join([f"search={term}", "sentence=1", f"page={page}"])
     )
     print(url)
@@ -123,7 +131,7 @@ def get_url(base_url: str, term: str, prefix: str = "posts", page: int = 1) -> s
 
 
 def is_api_available(
-    url: str, prefixes: List[str] = PREFIXES, browser: Browser = None
+    url: str, browser: Browser = None, endpoints: List[str] = ENDPOINTS
 ) -> bool:
     """Check for an open Wordpress API.
     
@@ -131,6 +139,7 @@ def is_api_available(
         - url: Base site URL.
         - browser: Selenium configuration information. Set None to use Requests
             module.
+        - endpoints: Wordpress endpoints.
     
     Returns:
         True if Wordpress API is available.
@@ -147,10 +156,10 @@ def is_api_available(
     api_url = f"{url}/{API_SUFFIX}"
     res = collector(api_url)
 
-    # Check for prefix endpoints.
-    for prefix in prefixes:
+    # Check for endpoint endpoints.
+    for endpoint in endpoints:
         try:
-            routes = json.loads(res)["routes"]["/wp/v2/" + prefix]
+            routes = json.loads(res)["routes"]["/wp/v2/" + endpoint]
 
             # Is the GET method available for this route?
             if "GET" not in routes["methods"]:
