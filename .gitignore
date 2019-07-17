@@ -178,6 +178,7 @@ dmypy.json
 
 # Visual Studio Code
 .vscode/
+.vs/
 
 # Misc.
 browser_test*.html
