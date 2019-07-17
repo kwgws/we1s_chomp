@@ -8,7 +8,7 @@ from datetime import datetime
 from logging import getLogger
 from typing import Dict, Iterator, Optional, Set, Tuple
 
-from we1s_chomp.libs import browser, clean
+from we1s_chomp import browser, clean
 
 
 ###############################################################################
