@@ -92,7 +92,7 @@ class Browser:
             response = requests.get(self.hub_url + _HUB_STATUS_URL_SUFFIX).json()
 
         except requests.RequestException as e:
-            log.error("Error querying Selenium Grid status: %s" % e.msg)
+            log.error("Error querying Selenium Grid status: %s" % e)
             response = False
 
         return response.get("value", False).get("ready", False)
@@ -108,6 +108,9 @@ class Browser:
         """
         log = getLogger(__name__)
 
+        if "http://" not in url and "https://" not in url:
+            url = "http://" + url
+
         # Check grid status before we make a request.
         time_elapsed = 0.0
         while not self.is_grid_ready():
@@ -122,11 +125,11 @@ class Browser:
                 desired_capabilities={"browserName": "chrome"},
             )
             driver.get(url)
-            response = driver.page_source
+            response = driver.find_element_by_tag_name("pre").text
             sleep(self.sleep_time)
 
         except WebDriverException as e:
-            log.error('Error while trying to get URL "%s": %s' % (url, e.msg))
+            log.error('Error while trying to get URL "%s": %s' % (url, e))
             response = None
 
         finally:
@@ -161,7 +164,7 @@ class Browser:
                     responses.append(response)
 
         except futures.TimeoutError or futures.CancelledError as e:
-            log.error("Batch error: %s. Try using Browser.get()." % e.msg)
+            log.error("Batch error: %s. Try using Browser.get()." % e)
             return None
 
         return responses
@@ -201,12 +204,15 @@ def get(
     """
     log = getLogger(__name__)
 
+    if "http://" not in url and "https://" not in url:
+        url = "http://" + url
+
     try:
         response = requests.get(url).text
         sleep(sleep_time)
 
     except requests.RequestException as e:
-        log.error('Error while trying to get URL "%s": %s' % (url, e.msg))
+        log.error('Error while trying to get URL "%s": %s' % (url, e))
         return None
 
     return response

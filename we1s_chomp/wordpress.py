@@ -234,17 +234,17 @@ def is_api_available(
 
             # Is the GET method available for this route?
             if "GET" not in routes["methods"]:
-                log.debug("No Wordpress API found for %s." % url)
+                log.info("No Wordpress API found for %s." % url)
                 return False
 
             # Is the search argument available?
             endpoint = next(e for e in routes["endpoints"] if "GET" in e["methods"])
             if "search" not in endpoint["args"].keys():
-                log.debug("Search not available for Wordpress API at %s." % url)
+                log.info("Search not available for Wordpress API at %s." % url)
                 return False
 
-        except (AttributeError, KeyError, json.JSONDecodeError):
-            log.debug("No Wordpress API found for %s." % url)
+        except (AttributeError, KeyError, json.JSONDecodeError, TypeError):
+            log.info("No Wordpress API found for %s." % url)
             return False
 
     log.info("Found Wordpress API at %s." % api_url)
