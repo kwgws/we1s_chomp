@@ -8,19 +8,19 @@ Todo:
 
 import html
 from contextlib import suppress
+from datetime import datetime
 from logging import getLogger
-from typing import List
+from typing import List, Optional, Tuple
 
+import dateparser
 import regex as re
 from bs4 import BeautifulSoup
 from unidecode import unidecode
 
-from we1s_chomp import utils
 
-
-################################################################################
-# Internal configuration parameters.                                           #
-################################################################################
+###############################################################################
+# Internal configuration parameters.                                          #
+###############################################################################
 
 
 _DEFAULT_CONTENT_LENGTH = 75
@@ -32,13 +32,19 @@ _DEFAULT_CONTENT_TAGS = ["p", "div", "span"]
 _REGEX_HTML_CLEAN = re.compile(r"<(.*?)>|(http.*?)\s")
 """Regex string to remove HTML tags and URLs."""
 
+_DEFAULT_STUB_LENGTH = 75
+"""Number of characters to limit a stub to."""
 
-################################################################################
-# Cleaning functions.                                                          #
-################################################################################
+_STRFTIME = "%Y-%m-%d"
+"""Datetime to string formatter."""
 
 
-def clean_html(
+###############################################################################
+# Cleaning functions.                                                         #
+###############################################################################
+
+
+def get_content(
     html_input: str,
     length: int = _DEFAULT_CONTENT_LENGTH,
     tags: List[str] = _DEFAULT_CONTENT_TAGS,
@@ -95,8 +101,48 @@ def clean_html(
         content = re.sub(_REGEX_HTML_CLEAN, "", content)
 
         if content != "":
-            log.debug("Successfully cleaned HTML string: %s" % utils.get_stub(html_input))
+            log.debug("Successfully cleaned HTML string: %s" % get_stub(html_input))
             return content
 
-    log.warning("No content found in HTML string: %s" % utils.get_stub(html_input))
+    log.warning("No content found in HTML string: %s" % get_stub(html_input))
     return ""
+
+
+def parse_date(
+    date_str: str, date_range: Optional[Tuple[datetime, datetime]] = None
+) -> Optional[datetime]:
+    """Parse date from string, return None if error or out of range.
+
+    Args:
+        date_str: Date string ("Last Month", "July 5th, 1996", etc.)
+        date_range: Beginning and end date to check against, or None if no
+            checking.
+
+    Returns:
+        Parsed date or None if error or out of range.
+    """
+    log = getLogger(__name__)
+
+    # Get date from string.
+    try:
+        date = dateparser.parse(date_str)
+    except KeyError or TypeError:
+        log.debug('Error parsing date from string "%s"' % date_str)
+        return None
+
+    # Check date against range
+    if date_range is not None and (date < date_range[0] or date > date_range[1]):
+        log.debug("Out of date range: %s." % date.strftime(_STRFTIME))
+        return None
+
+    return date
+
+
+###############################################################################
+# Helper functions.                                                           #
+###############################################################################
+
+
+def get_stub(text: str, stub_length: int = _DEFAULT_STUB_LENGTH) -> str:
+    """Get a stub version of input for logging."""
+    return text[:stub_length] + "..." if len(text) > stub_length else text

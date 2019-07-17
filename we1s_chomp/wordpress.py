@@ -6,17 +6,14 @@
 import json
 from datetime import datetime
 from logging import getLogger
-from typing import Dict, Iterator, Set
+from typing import Dict, Iterator, Optional, Set, Tuple
 
-import dateparser
-
-from we1s_chomp import clean, utils
-from we1s_chomp.browser import Browser, get
+from we1s_chomp.libs import browser, clean
 
 
-################################################################################
-# Internal configuration parameters.                                           #
-################################################################################
+###############################################################################
+# Internal configuration parameters.                                          #
+###############################################################################
 
 
 _API_SUFFIX = "wp-json/wp/v2"
@@ -29,9 +26,9 @@ _DEFAULT_PAGE_LIMIT = -1
 """Stop after this # of pages, or -1 for no limit."""
 
 
-################################################################################
-# Collector functions.                                                         #
-################################################################################
+###############################################################################
+# Collector functions.                                                        #
+###############################################################################
 
 
 # Step 1: Get search responses.
@@ -42,7 +39,7 @@ def get_responses(
     url_stops: Set[str] = {},
     url_stop_words: Set[str] = {},
     page_limit: int = _DEFAULT_PAGE_LIMIT,
-    browser: Optional[Browser] = None,
+    browser_config: Optional[browser.Browser] = None,
 ) -> Iterator[str]:
     """Chomp query using Wordpress API.
 
@@ -54,7 +51,7 @@ def get_responses(
             each additional result we find.
         - url_stop_words: Skip all URLs that contain a word from this set.
         - page_limit: Stop after this # of pages, or -1 for no limit.
-        - browser: Selenium configuration information. Set None to use Requests
+        - browser_config: Selenium configuration information. Set None to use Requests
             module.
 
     Returns:
@@ -64,7 +61,7 @@ def get_responses(
 
     # Use Selenium if we have configuration information, otherwise default to
     # the requests module.
-    collector = utils.get_interface(browser)
+    collector = browser.get_interface(browser_config)
 
     # Collect once for each Wordpress endpoint.
     count = 0
@@ -74,7 +71,7 @@ def get_responses(
         # Check for collected pages and URL stop words.
         page = 1
         url = get_url(term, base_url, endpoint, page)
-        while utils.is_url_ok(url, url_stops, url_stop_words):
+        while browser.is_url_ok(url, url_stops, url_stop_words):
             log.info("Skipping %s." % url)
             page += 1
             skipped += 1
@@ -140,7 +137,7 @@ def get_metadata(
     try:
         response = json.loads(response)
     except json.JSONDecodeError:
-        log.warning('Could not decode JSON response "%s"' % utils.get_stub(response))
+        log.warning('Could not decode JSON response "%s"' % clean.get_stub(response))
         return None
 
     # Loop over the articles in the response and parse metadata.
@@ -150,13 +147,13 @@ def get_metadata(
 
         # Check for a URL stop.
         url = result["link"]
-        if not utils.is_url_ok(url, url_stops, url_stop_words):
+        if not browser.is_url_ok(url, url_stops, url_stop_words):
             log.info("Skipping %s (URL in stop list)." % url)
             skipped += 1
             continue
 
         # Check for date range.
-        date = utils.parse_date(result["date"], date_range)
+        date = clean.parse_date(result["date"], date_range)
         if not date:
             log.info("Skipping %s (No date or out of date range)." % url)
             skipped += 1
@@ -178,9 +175,9 @@ def get_metadata(
     log.info("Collected %i articles (%i skipped)." % (count, skipped))
 
 
-################################################################################
-# Helper functions.                                                            #
-################################################################################
+###############################################################################
+# Helper functions.                                                           #
+###############################################################################
 
 
 def get_url(term: str, base_url: str, endpoint: str = "posts", page: int = 1) -> str:
@@ -206,26 +203,25 @@ def get_url(term: str, base_url: str, endpoint: str = "posts", page: int = 1) ->
 
 
 def is_api_available(
-    url: str, browser: Browser = None, endpoints: Set[str] = _DEFAULT_ENDPOINTS
+    url: str,
+    browser_config: Optional[browser.Browser] = None,
+    endpoints: Set[str] = _DEFAULT_ENDPOINTS,
 ) -> bool:
     """Check for an open Wordpress API.
-    
+
     Args:
         - url: Base site URL.
-        - browser: Selenium configuration information. Set None to use Requests
+        - browser_config: Selenium configuration information. Set None to use Requests
             module.
         - endpoints: Wordpress endpoints.
-    
+
     Returns:
         True if Wordpress API is available.
     """
     log = getLogger()
 
     # Switch collector interface.
-    if browser is not None and isinstance(browser, Browser):
-        collector = browser.get
-    else:
-        collector = get
+    collector = browser.get_interface(browser_config)
 
     # Get JSON data from API.
     api_url = f"{url}/{_API_SUFFIX}"

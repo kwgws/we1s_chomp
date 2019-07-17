@@ -6,15 +6,14 @@
 import json
 from datetime import datetime
 from logging import getLogger
-from typing import Dict, Iterator, Set, Tuple
+from typing import Dict, Iterator, Optional, Set, Tuple
 
-from we1s_chomp import clean, utils
-from we1s_chomp.browser import Browser, get
+from we1s_chomp.libs import browser, clean
 
 
-################################################################################
-# Internal configuration parameters.                                           #
-################################################################################
+###############################################################################
+# Internal configuration parameters.                                          #
+###############################################################################
 
 
 _API_URL = "http://googleapis.com/customsearch/v1"
@@ -24,9 +23,9 @@ _DEFAULT_PAGE_LIMIT = 10
 """Stop after this # of pages, or -1 for no limit."""
 
 
-################################################################################
-# Collector functions.                                                         #
-################################################################################
+###############################################################################
+# Collector functions.                                                        #
+###############################################################################
 
 
 # Step 1: Get search responses.
@@ -38,7 +37,7 @@ def get_responses(
     url_stops: Set[str] = {},
     url_stop_words: Set[str] = {},
     page_limit: int = _DEFAULT_PAGE_LIMIT,
-    browser: Optional[Browser] = None,
+    browser_config: Optional[browser.Browser] = None,
 ) -> Iterator[str]:
     """Chomp query using Google CSE API.
 
@@ -52,7 +51,7 @@ def get_responses(
         - url_stop_words: Skip all URLs that contain a word from this set.
         - page_limit: Stop after this # of pages, or -1 for no limit. For the
             Google CSE API this defaults to 10 pages (or 100 results).
-        - browser: Selenium configuration information. Set None to use Requests
+        - browser_config: Selenium configuration information. Set None to use Requests
             module.
 
     Returns:
@@ -62,19 +61,19 @@ def get_responses(
 
     # Use Selenium if we have configuration information, otherwise default to
     # the requests module.
-    collector = utils.get_interface(browser)
+    collector = browser.get_interface(browser_config)
 
     # Check for collected pages and URL stops.
+    count = 0
     page = 1
+    skipped = 0
     url = get_url(term, base_url, cx, key, page)
-    while utils.is_url_ok(url, url_stops, url_stop_words):
+    while browser.is_url_ok(url, url_stops, url_stop_words):
         page += 1
         skipped += 1
         get_url(term, base_url, cx, key, page)
 
     # Loop over responses and stop after page limit if set.
-    count = 0
-    skipped = 0
     while page_limit == -1 or page <= page_limit:
 
         # Collect a response.
@@ -118,7 +117,7 @@ def get_metadata(
     date_range: Tuple[datetime, datetime],
     url_stops: Set[str] = {},
     url_stop_words: Set[str] = {},
-    browser: Optional[Browser] = None,
+    browser_config: Optional[browser.Browser] = None,
 ) -> Optional[Iterator[Dict]]:
     """Collect metadata from Google CSE response.
 
@@ -128,7 +127,7 @@ def get_metadata(
         - url_stops: Skip these URLs altogether. This will be modified with
             each additional result we find.
         - url_stop_words: Skip all URLs that contain a word from this set.
-        - browser: Selenium configuration information. Set None to use Requests
+        - browser_config: Selenium configuration information. Set None to use Requests
             module.
 
     Returns:
@@ -141,13 +140,13 @@ def get_metadata(
 
     # Use Selenium if we have configuration information, otherwise default to
     # the requests module.
-    collector = utils.get_interface(browser)
+    collector = browser.get_interface(browser)
 
     # Parse JSON response string.
     try:
         response = json.loads(response)
     except json.JSONDecodeError:
-        log.warning('Could not decode JSON response "%s".' % utils.get_stub(response))
+        log.warning('Could not decode JSON response "%s".' % clean.get_stub(response))
         return None
 
     # Loop over the articles in the response and parse metadata.
@@ -157,13 +156,13 @@ def get_metadata(
 
         # Skip if we match one of the URL stops.
         url = result["link"]
-        if not utils.is_url_ok(url, url_stops, url_stop_words):
+        if not browser.is_url_ok(url, url_stops, url_stop_words):
             log.info("Skipping %s (URL in stop list)." % url)
             skipped += 1
             continue
 
         # Skip if no date or if we're out of the date range.
-        date = utils.parse_date(result["snippet"].split(" ... ")[0])
+        date = clean.parse_date(result["snippet"].split(" ... ")[0])
         if not date:
             log.info("Skipping %s (No date or out of date range)." % url)
             skipped += 1
@@ -186,9 +185,9 @@ def get_metadata(
     log.info("Collected %i articles (%i skipped)." % (count, skipped))
 
 
-################################################################################
-# Helper functions.                                                            #
-################################################################################
+###############################################################################
+# Helper functions.                                                           #
+###############################################################################
 
 
 def get_url(term: str, base_url: str, cx: str, key: str, page: int = 1) -> str:
@@ -199,7 +198,7 @@ def get_url(term: str, base_url: str, cx: str, key: str, page: int = 1) -> str:
         - base_url: Site URL.
         - cx: CSE engine ID.
         - key: CSE API key.
-        - page: Result page to start at.  
+        - page: Result page to start at.
 
     Returns:
         URL for query.
@@ -220,4 +219,3 @@ def get_url(term: str, base_url: str, cx: str, key: str, page: int = 1) -> str:
         )
     )
     return url
-

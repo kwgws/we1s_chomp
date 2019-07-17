@@ -16,21 +16,20 @@ Todo:
     - Reinforce exception handling.
 """
 
-import json
 import random
 import time
 from concurrent import futures
 from logging import getLogger
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Set, Tuple
 
 import requests
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 
 
-################################################################################
-# Internal configuration parameters.                                           #
-################################################################################
+###############################################################################
+# Internal configuration parameters.                                          #
+###############################################################################
 
 
 _DEFAULT_BROWSER_TIMEOUT = 60.0
@@ -49,9 +48,9 @@ _HUB_STATUS_URL_SUFFIX = "/wd/hub/status"
 """Suffix for Grid URL to get at status report JSON."""
 
 
-################################################################################
-# Browser class.                                                               #
-################################################################################
+###############################################################################
+# Browser class.                                                              #
+###############################################################################
 
 
 class Browser:
@@ -168,9 +167,9 @@ class Browser:
         return responses
 
 
-################################################################################
-# Helper functions for Browser class.                                          #
-################################################################################
+###############################################################################
+# Helper functions for Browser class.                                         #
+###############################################################################
 
 
 def sleep(sleep_time: Tuple[float, float] = _DEFAULT_BROWSER_SLEEP) -> float:
@@ -211,3 +210,19 @@ def get(
         return None
 
     return response
+
+
+def get_interface(browser: Optional[Browser] = None) -> Callable:
+    """Switch collector interface."""
+    if browser is not None and isinstance(browser, Browser):
+        return browser.get
+    return get
+
+
+def is_url_ok(
+    url: str, url_stops: Set[str] = {}, url_stop_words: Set[str] = {}
+) -> bool:
+    """Check URL against stop lists."""
+    return not (
+        url in url_stops or next([s for s in url_stop_words if s in url], False)
+    )
