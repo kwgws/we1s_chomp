@@ -60,7 +60,8 @@ def get_responses(
     """
     log = getLogger()
 
-    # Switch collector interface.
+    # Use Selenium if we have configuration information, otherwise default to
+    # the requests module.
     collector = utils.get_interface(browser)
 
     # Check for collected pages and URL stops.
@@ -138,7 +139,8 @@ def get_metadata(
     """
     log = getLogger(__name__)
 
-    # Switch collector interface.
+    # Use Selenium if we have configuration information, otherwise default to
+    # the requests module.
     collector = utils.get_interface(browser)
 
     # Parse JSON response string.
@@ -153,14 +155,14 @@ def get_metadata(
     skipped = 0
     for result in response["items"]:
 
-        # Check for a URL stop.
+        # Skip if we match one of the URL stops.
         url = result["link"]
         if not utils.is_url_ok(url, url_stops, url_stop_words):
             log.info("Skipping %s (URL in stop list)." % url)
             skipped += 1
             continue
 
-        # Check for date range.
+        # Skip if no date or if we're out of the date range.
         date = utils.parse_date(result["snippet"].split(" ... ")[0])
         if not date:
             log.info("Skipping %s (No date or out of date range)." % url)

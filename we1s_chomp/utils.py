@@ -20,7 +20,7 @@ from we1s_chomp.browser import Browser, get
 DEFAULT_STUB_LENGTH = 75
 """Number of characters to limit a stub to."""
 
-STRFTIME: str = "%Y-%m-%d"
+STRFTIME = "%Y-%m-%d"
 """Datetime to string formatter."""
 
 

@@ -62,7 +62,8 @@ def get_responses(
     """
     log = getLogger()
 
-    # Switch collector interface.
+    # Use Selenium if we have configuration information, otherwise default to
+    # the requests module.
     collector = utils.get_interface(browser)
 
     # Collect once for each Wordpress endpoint.

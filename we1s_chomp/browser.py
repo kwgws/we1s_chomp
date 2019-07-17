@@ -21,7 +21,7 @@ import random
 import time
 from concurrent import futures
 from logging import getLogger
-from typing import Dict, List, Tuple, Union
+from typing import List, Optional, Tuple
 
 import requests
 from selenium import webdriver
@@ -98,14 +98,14 @@ class Browser:
 
         return response.get("value", False).get("ready", False)
 
-    def get(self, url: str) -> str:
+    def get(self, url: str) -> Optional[str]:
         """Get page source from URL using Selenium Grid.
 
         Args:
             - url: URL of page to get.
 
         Returns:
-            Raw text content of the response.
+            Raw text content of the response, None if error.
         """
         log = getLogger(__name__)
 
@@ -137,7 +137,7 @@ class Browser:
 
     def get_batch(
         self, urls: List[str], num_workers: int = _DEFAULT_NUM_BATCH_WORKERS
-    ) -> List[Tuple[str, str]]:
+    ) -> Optional[List[Tuple[str, str]]]:
         """Get a batch of responses using Selenium Grid.
 
         Args:
@@ -146,7 +146,8 @@ class Browser:
                 nodes in the grid.
 
         Returns:
-            List of tuples pairing the URLs and with their raw text responses.
+            List of tuples pairing the URLs and with their raw text responses,
+            or None if error.
         """
         log = getLogger(__name__)
 
@@ -185,7 +186,9 @@ def sleep(sleep_time: Tuple[float, float] = _DEFAULT_BROWSER_SLEEP) -> float:
     return sleep_time
 
 
-def get(url: str, sleep_time: Tuple[float, float] = _DEFAULT_BROWSER_SLEEP) -> str:
+def get(
+    url: str, sleep_time: Tuple[float, float] = _DEFAULT_BROWSER_SLEEP
+) -> Optional[str]:
     """Get page source from URL using the Requests module.
 
     N.b. some websites will attempt to block programmatic requests. Try Browser
@@ -195,7 +198,7 @@ def get(url: str, sleep_time: Tuple[float, float] = _DEFAULT_BROWSER_SLEEP) -> s
         - url: URL of page to get.
 
     Returns:
-        Raw text content of the response.
+        Raw text content of the response, None if error.
     """
     log = getLogger(__name__)
 
