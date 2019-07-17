@@ -33,8 +33,7 @@ def get_interface(browser: Optional[Browser] = None) -> Callable:
     """Switch collector interface."""
     if browser is not None and isinstance(browser, Browser):
         return browser.get
-    else:
-        return get
+    return get
 
 
 def get_stub(text: str, stub_length: int = DEFAULT_STUB_LENGTH) -> str:
