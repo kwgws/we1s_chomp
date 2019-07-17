@@ -1,7 +1,0 @@
-# pip install --no-cache-dir lxml
-requests>=2.22
-dateparser>=0.7
-beautifulsoup4>=4.7
-unidecode>=1.1
-selenium>=1.25
-html5lib>=1
