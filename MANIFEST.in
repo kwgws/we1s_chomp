@@ -1,2 +1,0 @@
-include *.txt README.md LICENSE
-recursive-include docs *.txt

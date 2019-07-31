@@ -1,6 +1,0 @@
-.pdf
-.doc
-.docx
-.odf
-/author/
-/contributor/

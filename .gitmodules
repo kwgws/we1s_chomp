@@ -1,3 +1,0 @@
-[submodule "extern/ssdeep"]
-	path = extern/ssdeep
-	url = https://github.com/MacDue/ssdeep-windows-32_64
