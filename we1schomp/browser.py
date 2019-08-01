@@ -1,136 +1,75 @@
 # -*- coding: utf-8 -*-
 """
-"""
+we1schomp/browser.py
 
-import logging
-import os
-import random
-from gettext import gettext as _
+
+WE1SCHOMP ©2018-19, licensed under MIT.
+A Digital Humanities Web Scraper by Sean Gilleran and WhatEvery1Says.
+http://we1s.ucsb.edu
+http://github.com/seangilleran/we1schomp
+"""
+import json
+from logging import getLogger
+from random import uniform as randfloat
+import subprocess
 from time import sleep
+from typing import Dict, List, Tuple, Union
 
 from selenium import webdriver
-from selenium.common import exceptions
+from selenium.common.exceptions import WebDriverException
 
 
 class Browser:
     """
+    Web browser wrapper.
+
+    Most websites either use SSL or attempt to block simple crawlers--bad news
+    for Python's programmatic HTTP request modules. We can (mostly) get around
+    that by using Selenium to control an actual copy of Chrome.
     """
 
-    BROWSER_TYPE = 'Chrome'
-    WAIT_FOR_KEYPRESS = False
-    SANITY_SLEEP = 1.0  # Seconds to wait between each browser action.
-    SLEEP_MIN = 1.0
-    SLEEP_MAX = 1.0
+    ###
+    def __init__(
+        self,
+        selenium_url: str,
+        wait_time: Tuple[float, float] = (1.0, 3.0),
+    ):
+        """Create a new Browser instance."""
+        self._log = getLogger(__name__)
 
-    def __init__(self, browser_type='Chrome', settings=None):
-        """
-        """
+        self.wait_time = wait_time
+        self._driver = webdriver.Remote(
+            command_executor=selenium_url,
+            desired_capabilities={"browserName": "chrome"}
+        )
 
-        self._log = logging.getLogger(__name__)
+    ###
+    def __enter__(self):
+        """Enter runtime context; used for "with" statement."""
+        return self
 
-        self.BROWSER_TYPE = browser_type
-        if settings is not None:
-            self.WAIT_FOR_KEYPRESS = settings['WAIT_FOR_KEYPRESS']
-            self.SLEEP_MIN = settings['SLEEP_MIN']
-            self.SLEEP_MAX = settings['SLEEP_MAX']
-            self.SANITY_SLEEP = settings['SANITY_SLEEP']
-        
-        self._driver = self.get_driver()
+    ###
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Tear down runtime context; used for "with" statement."""
+        if self._driver is not None:
+            self._driver.quit()
 
-        # We need to guarantee the driver closes when we're done with it.
-        # There's probably a better way to do this!
-        # atexit.register(self.close)
-        
-    @property
-    def current_url(self):
-        """
-        """
+    ###
+    def get(self, url: str, get_json: bool = False) -> Union[Dict, List, str]:
+        """Get the HTML result from a URL."""
 
-        return self._driver.current_url
+        if "http://" not in url and "https://" not in url:
+            url = f"http://{url}"
+        self._log.info("Browser going to %s" % url)
+    
+        self._driver.get(url)
 
-    @property
-    def source(self):
-        """
-        """
+        if get_json:
+            source = self._driver.find_element_by_tag_name("pre").text
+            source = json.loads(source)
+        else:
+            source = str(self._driver.page_source)
 
-        return self._driver.page_source
+        sleep(randfloat(*self.wait_time))
 
-    def get_driver(self):
-        """
-        """
-
-        self._log.info(_('Starting %s.'), self.BROWSER_TYPE)
-
-        if self.BROWSER_TYPE == 'Chrome':
-
-            opts = webdriver.ChromeOptions()
-            opts.add_argument('--log-level=3')  # Suppress warnings.
-            opts.add_argument('--incognito')
-
-            driver_path = os.path.join(os.getcwd(), 'chromedriver.exe')
-            self._log.debug(_('Using WebDriver at %s.'), driver_path)
-
-            driver = webdriver.Chrome(
-                executable_path=driver_path,
-                service_log_path='selenium.log',
-                chrome_options=opts)
-            driver.implicitly_wait(self.SANITY_SLEEP)
-
-            self.sleep(self.SANITY_SLEEP)
-
-            return driver
-
-        # TODO: Support for all Selenium-compatible browsers.
-        raise NotImplementedError(
-            _('%s is not a supported browser type.' % self.BROWSER_TYPE))
-
-    def go(self, url):
-        """
-        """
-        
-        if self.WAIT_FOR_KEYPRESS:
-            input(_('Press "Enter" to continue...'))
-
-        self._log.info(_('%s going to: %s'), self.BROWSER_TYPE, url)
-        return self._driver.get(url)
-
-    def sleep(self, sleep_time=None):
-        """
-        """
-
-        if not sleep_time:
-            sleep_time = random.uniform(self.SLEEP_MIN, self.SLEEP_MAX)
-
-        self._log.debug(_('Sleeping for %.2f seconds.'), sleep_time)
-        sleep(sleep_time)
-
-    def captcha_check(self):
-        """
-        """
-
-        if '/sorry/' in self._driver.current_url:
-            self._log.error(_('CAPTCHA detected! Waiting for human...'))
-            while '/sorry/' in self._driver.current_url:
-                sleep(self.SANITY_SLEEP)
-            self._log.info(_('Ok!'))
-            self.sleep()
-
-    def click_on_id(self, tag_id):
-        """
-        """
-
-        try:
-            item = self._driver.find_element_by_id(tag_id)
-        except exceptions.NoSuchElementException:
-            return False
-
-        item.click()
-
-        return True
-
-    def close(self):
-        """
-        """
-
-        self._log.info(_('Closing %s.'), self.BROWSER_TYPE)
-        self._driver.quit()
+        return source
