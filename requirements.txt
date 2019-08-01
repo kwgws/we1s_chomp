@@ -1,0 +1,9 @@
+beautifulsoup4>=4.8.0
+bleach>=3.1.0
+dateparser>=0.7.1
+html5lib>=1.0.1
+nbfilter>=1.1.0
+regex>=2019.6.8
+requests>=2.22.0
+selenium>=3.141.0
+unidecode>=1.1.1
