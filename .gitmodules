@@ -1,0 +1,9 @@
+[submodule "extern/we1s_preprocessing"]
+	path = extern/we1s_preprocessing
+	url = https://github.com/whatevery1says/preprocessing/
+[submodule "extern/we1s_collector"]
+	path = extern/we1s_collector
+	url = https://github.com/whatevery1says/we1s-collector/
+[submodule "extern/we1s_manifest"]
+	path = extern/we1s_manifest
+	url = https://github.com/whatevery1says/manifest/
