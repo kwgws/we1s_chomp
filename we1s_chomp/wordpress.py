@@ -169,7 +169,7 @@ def get_metadata(
             log.info("Skipping %s (No content)." % url)
             skipped += 1
             continue
-        
+
         content = clean.get_content(content_html)
         no_exact_match = query_str not in content
 

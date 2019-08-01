@@ -73,7 +73,9 @@ def get_responses(
     while page_limit == -1 or page <= page_limit:
 
         # Collect the result.
-        res = collector(url.format(cx=google_cx, key=google_key), is_expecting_json=True)
+        res = collector(
+            url.format(cx=google_cx, key=google_key), is_expecting_json=True
+        )
         try:
             res = json.loads(res)
         except json.JSONDecodeError:
@@ -163,7 +165,9 @@ def get_metadata(
             continue
 
         # Skip if no date or out of date range.
-        date = clean.str_to_date(result["snippet"].split(" ... ")[0], (start_date, end_date))
+        date = clean.str_to_date(
+            result["snippet"].split(" ... ")[0], (start_date, end_date)
+        )
         if not date:
             log.info("Skipping %s (No date or out of date range)." % url)
             skipped += 1
@@ -175,7 +179,7 @@ def get_metadata(
             log.info("Skipping %s (No content)." % url)
             skipped += 1
             continue
-        
+
         content = clean.get_content(content_html)
         no_exact_match = query_str not in content
 

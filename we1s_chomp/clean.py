@@ -59,7 +59,7 @@ def get_content(
         Cleaned content string; empty if no content.
     """
     log = getLogger(__name__)
-    
+
     if not html_input or html_input == "":
         log.warning("No content to clean!")
         return ""
@@ -130,7 +130,7 @@ def str_to_date(
     if not date:
         log.debug('Error parsing date from string "%s"' % date_str)
         return None
-    
+
     # Dump time info, etc.
     date = date.date()
 

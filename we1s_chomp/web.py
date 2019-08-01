@@ -190,13 +190,9 @@ def get_interface(browser: Optional[Browser] = None) -> Callable:
     return get
 
 
-def is_url_ok(
-    url: str, url_stops: Set[str] = {}, url_stopwords: Set[str] = {}
-) -> bool:
+def is_url_ok(url: str, url_stops: Set[str] = {}, url_stopwords: Set[str] = {}) -> bool:
     """Check URL against stop lists."""
-    return not (
-        url in url_stops or next((s for s in url_stopwords if s in url), False)
-    )
+    return not (url in url_stops or next((s for s in url_stopwords if s in url), False))
 
 
 def random_sleep(sleep_range: Tuple[float, float] = _DEFAULT_BROWSER_SLEEP) -> float:

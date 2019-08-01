@@ -93,7 +93,7 @@ def load_document(name: str, dirpath: str) -> Document:
             with open(filename, encoding="utf-8") as htmlfile:
                 document.content_html = htmlfile.read()
         else:
-            log.warning('Raw HTML content not found at %s, skipping.' % filename)
+            log.warning("Raw HTML content not found at %s, skipping." % filename)
 
     # Parse pub_date.
     if document.pub_date != "":
