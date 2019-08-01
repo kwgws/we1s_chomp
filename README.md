@@ -11,8 +11,8 @@
 
 ## Installation
 
-Set up a virtual machine, Docker container or other environment with Python
->3.6 and the latest version of Jupyter Notebook.
+Set up a virtual machine, Docker container or other environment with Python >3.6
+and the latest version of Jupyter Notebook.
 
 Clone the repository to a working directory with:
 `git clone https://github.com/seangilleran/we1s_chomp`
