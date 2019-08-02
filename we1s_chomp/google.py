@@ -121,11 +121,11 @@ def get_metadata(
 
     Args:
         response: Raw JSON string of response data.
-        query_str: Term to search for. Documents that do not contain this str
+        query_str: Term to search for. Articles that do not contain this str
             in their content field will be flagged as no_exact_match.
-        start_date: Start date of query. Documents dated before this, and those
+        start_date: Start date of query. Articles dated before this, and those
             without a date, will be ignored.
-        end_date: End date of query. Documents dated after this, and those
+        end_date: End date of query. Articles dated after this, and those
             without a date, will be ignored.
         url_stops: Skip these URLs altogether. This will be modified with each
             additional result we find in order to prevent dupes.
@@ -134,8 +134,8 @@ def get_metadata(
             to use Requests module.
 
     Returns:
-        Generator containing document metadata as a dict (or None if error).
-        This can be used as-is or passed to the Document constructor.
+        Generator containing article metadata as a dict (or None if error).
+        This can be used as-is or passed to the Article constructor.
 
     Todo:
         Error checking for keys in response JSON.
@@ -196,7 +196,7 @@ def get_metadata(
         }
         log.info("Got %s." % url)
 
-    log.info("Collected %i documents (%i skipped)." % (count, skipped))
+    log.info("Collected %i articles (%i skipped)." % (count, skipped))
 
 
 ###############################################################################

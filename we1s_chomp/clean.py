@@ -1,14 +1,15 @@
-"""Tools to process raw content.
+"""Tools to parse and organize raw web content.
 
 Todo:
-- Merge with the tools in the preprocessor Document class.
+- Merge with the tools in the preprocessor Article class.
 """
 import html
 from contextlib import suppress
 from datetime import datetime
 from logging import getLogger
-from typing import List, Optional, Tuple
+from typing import Iterable, Optional, Tuple
 
+import bleach
 import dateparser
 import regex as re
 from bs4 import BeautifulSoup
@@ -32,7 +33,10 @@ _DEFAULT_STUB_LENGTH = 75
 REGEX_HTML_CLEAN = re.compile(r"<(.*?)>|(http.*?)\s")
 """Regex string to remove HTML tags and URLs."""
 
-STRFTIME = "%Y-%m-%d"
+REGEX_WHITESPACE = re.compile(r"\s+")
+"""Regex string to remove extra whitespace."""
+
+STRFTIME = "%Y-%m-%dT%H:%M:%SZ"
 """Datetime to string formatter."""
 
 
@@ -44,9 +48,9 @@ STRFTIME = "%Y-%m-%d"
 def get_content(
     html_input: str,
     length: int = _DEFAULT_CONTENT_LENGTH,
-    tags: List[str] = _DEFAULT_CONTENT_TAGS,
+    tags: Iterable[str] = _DEFAULT_CONTENT_TAGS,
 ) -> str:
-    """Find content within an HTML document.
+    """Remove HTML tags and parse content string.
 
     Args:
         html_input: HTML content to process.
@@ -61,37 +65,45 @@ def get_content(
     log = getLogger(__name__)
 
     if not html_input or html_input == "":
-        log.warning("No content to clean!")
+        log.warning("Trying to clean content, but no content provided!")
         return ""
 
     # Throw out tags we don't need.
     soup = BeautifulSoup(html_input, "html5lib")
     with suppress(AttributeError):
-        soup.caption.extract()
-        soup.footer.extract()
-        soup.header.extract()
-        soup.img.extract()
-        soup.nav.extract()
+        soup.head.extract()
         soup.script.extract()
+        soup.header.extract()
+        soup.nav.extract()
+        soup.aside.extract()
+        soup.img.extract()
+        soup.footer.extract()
 
-    # Take all the content tags, default <p>, and mush together the ones that
-    # are over the specified length. This seems to work (mostly), but if we're
-    # getting bad content for a site we should consider tweaking the formula or
-    # using another extraction method.
     for tag_type in tags:
 
+        # Take all the content tags, default <p>, and mush together the ones
+        # that are over the specified length. This seems to work (mostly), but
+        # if we're getting bad content for a site we should consider tweaking
+        # the formula or using another extraction method.
         content = ""
         for tag in [t for t in soup.find_all(tag_type) if len(t.text) > length]:
             content += " " + str(tag.text)
 
-        # Convert to HTML.
-        content = html.unescape(content)
-
-        # Get rid of special characters.
+        # Convert to unicode and ASCII-fy special characters.
         content = unidecode(content)
 
-        # Remove HTML tags and leftover URLs.
-        content = re.sub(REGEX_HTML_CLEAN, "", content)
+        # Convert unescaped tags to HTML for cleaning.
+        content = html.unescape(content)
+
+        # Remove HTML tags.
+        content = bleach.clean(content, strip=True, strip_comments=True)
+
+        # Remove HTML tags (again, just in case!) and leftover URLs.
+        content = re.sub(REGEX_HTML_CLEAN, " ", content)
+
+        # Remove leftover whitespace.
+        content = re.sub(REGEX_WHITESPACE, " ", content)
+        content = content.strip()
 
         if content != "":
             log.debug("Successfully cleaned HTML string: %s" % get_stub(html_input))
@@ -121,22 +133,26 @@ def str_to_date(
     """
     log = getLogger(__name__)
 
+    # Do minor clean-up on date string.
+    date_str = date_str.lower().strip()
+
+    # Don't bother with the parser for simple stuff.
+    if date_str == "now" or date_str == "today":
+        return datetime.utcnow()
+
     # Get date from string.
     try:
         date = dateparser.parse(date_str)
     except KeyError or TypeError:
-        log.debug('Error parsing date from string "%s"' % date_str)
+        log.warning('Error parsing date from string "%s"' % date_str)
         return None
     if not date:
-        log.debug('Error parsing date from string "%s"' % date_str)
+        log.warning('Error parsing date from string "%s"' % date_str)
         return None
-
-    # Dump time info, etc.
-    date = date.date()
 
     # Check date against range
     if date_range is not None and (date < date_range[0] or date > date_range[1]):
-        log.debug("Out of date range: %s." % date.strftime(STRFTIME))
+        log.warning("Out of date range: %s." % date.strftime(STRFTIME))
         return None
 
     return date

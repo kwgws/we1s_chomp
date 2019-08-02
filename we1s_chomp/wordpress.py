@@ -5,7 +5,8 @@ from datetime import datetime
 from logging import getLogger
 from typing import Dict, Iterator, Optional, Set, Tuple
 
-from we1s_chomp import clean, web
+from we1s_chomp import web
+from we1s_chomp.clean import get_content, get_stub, str_to_date
 
 ###############################################################################
 # Internal configuration parameters.                                          #
@@ -17,7 +18,7 @@ _API_SUFFIX = "wp-json/" + _API_VER
 """Add this string to a URL to get Wordpress API."""
 
 _DEFAULT_ENDPOINTS = {"pages", "posts"}
-"""Wordpress document types to collect."""
+"""Wordpress endpoints to collect."""
 
 _DEFAULT_PAGE_LIMIT = -1
 """Stop after this # of pages, or -1 for no limit."""
@@ -69,7 +70,7 @@ def get_responses(
         page = 1
         url = get_url(query_str, base_url, endpoint, page)
         while not web.is_url_ok(url, url_stops, url_stopwords):
-            log.info("Skipping %s." % url)
+            log.info("Skipping (URL in stop list): %s" % url)
             page += 1
             skipped += 1
             url = get_url(query_str, base_url, endpoint, page)
@@ -82,13 +83,13 @@ def get_responses(
             try:
                 res = json.loads(res)
             except json.JSONDecodeError:
-                log.warning("Could not decode JSON response from %s." % url)
+                log.warning("Could not decode JSON response: %s" % url)
                 break
 
             # If a list returns, ye've pages t' burn
             #   If a dict ye score, thar be pages no more
             if not isinstance(res, list) or not len(res) > 0:
-                log.info("Out of pages or no content at %s." % url)
+                log.info("Out of pages or no content: %s" % url)
                 break
 
             # Save response.
@@ -100,10 +101,7 @@ def get_responses(
             page += 1
             url = get_url(query_str, base_url, endpoint, page)
 
-    log.info(
-        "Collected %i responses (%i skipped) from %s with Wordpress API."
-        % (count, skipped, base_url)
-    )
+    log.info("Collected %i responses (%i skipped): %s" % (count, skipped, base_url))
 
 
 # Step 2: Get metadata & content from responses.
@@ -119,19 +117,19 @@ def get_metadata(
 
     Args:
         response: Raw JSON string of response data.
-        query_str: Term to search for. Documents that do not contain this str
-            in their content field will be flagged as no_exact_match.
-        start_date: Start date of query. Documents dated before this, and those
+        query_str: Term to search for. Articles that do not contain this str in
+            their content field will be flagged as no_exact_match.
+        start_date: Start date of query. Articles dated before this, and those
             without a date, will be ignored.
-        end_date: End date of query. Documents dated after this, and those
+        end_date: End date of query. Articles dated after this, and those
             without a date, will be ignored.
         url_stops: Skip these URLs altogether. This will be modified with each
             additional result we find in order to prevent dupes.
         url_stopwords: Skip all URLs that contain a word from this set.
 
     Returns:
-        Generator containing document metadata as a dict (or None if error).
-        This can be used as-is or passed to the Document constructor.
+        Generator containing article metadata as a dict (or None if error).
+        This can be used as-is or passed to the Article constructor.
 
     Todo:
         Error checking for keys in response JSON.
@@ -142,7 +140,7 @@ def get_metadata(
     try:
         response = json.loads(response)
     except json.JSONDecodeError:
-        log.warning('Could not decode JSON response "%s"' % clean.get_stub(response))
+        log.warning("Could not decode JSON response: %s" % get_stub(response))
         return None
 
     # Loop over the articles in the response and parse metadata.
@@ -152,25 +150,25 @@ def get_metadata(
         # Check for a URL stop.
         url = result["link"]
         if not web.is_url_ok(url, url_stops, url_stopwords):
-            log.info("Skipping %s (URL in stop list)." % url)
+            log.info("Skipping (URL in stop list): %s" % url)
             skipped += 1
             continue
 
         # Check for date range.
-        date = clean.str_to_date(result["date"], (start_date, end_date))
+        date = str_to_date(result["date"], (start_date, end_date))
         if not date:
-            log.info("Skipping %s (No date or out of date range)." % url)
+            log.info("Skipping (No date or out of date range): %s" % url)
             skipped += 1
             continue
 
         # Scrape content.
         content_html = result["content"]["rendered"]
         if not content_html or content_html == "":
-            log.info("Skipping %s (No content)." % url)
+            log.info("Skipping (No content): %s" % url)
             skipped += 1
             continue
 
-        content = clean.get_content(content_html)
+        content = get_content(content_html)
         no_exact_match = query_str not in content
 
         # Save metadata and return.
@@ -184,9 +182,11 @@ def get_metadata(
             "url": url,
             "no_exact_match": no_exact_match,
         }
-        log.info("Got %s." % url)
+        log.info("Chomped: %s" % url)
 
-    log.info("Collected %i articles (%i skipped)." % (count, skipped))
+    log.info(
+        "Chomped %i articles (%i skipped): %s" % (count, skipped, get_stub(response))
+    )
 
 
 ###############################################################################
@@ -244,18 +244,18 @@ def is_api_available(
 
             # Is the GET method available for this route?
             if "GET" not in routes["methods"]:
-                log.info("No Wordpress API found for %s." % base_url)
+                log.info("No Wordpress API found: %s" % base_url)
                 return False
 
             # Is the search argument available?
             endpoint = next(e for e in routes["endpoints"] if "GET" in e["methods"])
             if "search" not in endpoint["args"].keys():
-                log.info("Search not available for Wordpress API at %s." % base_url)
+                log.info("Search not available for Wordpress API: %s" % base_url)
                 return False
 
         except (AttributeError, KeyError, json.JSONDecodeError, TypeError):
-            log.info("No Wordpress API found for %s." % base_url)
+            log.info("No Wordpress API found: %s" % base_url)
             return False
 
-    log.info("Found Wordpress API at %s." % api_url)
+    log.info("Found Wordpress API: %s" % api_url)
     return True

@@ -7,10 +7,9 @@ import json
 from copy import copy
 from logging import getLogger
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Iterator
 
-from we1s_chomp.clean import date_to_str, str_to_date
-from we1s_chomp.model import Source, Query, Response, Document
+from we1s_chomp.model import Manifest
 
 
 ###############################################################################
@@ -18,89 +17,70 @@ from we1s_chomp.model import Source, Query, Response, Document
 ###############################################################################
 
 
-def _load_json_file(name: str, dirpath: Path) -> Dict:
-    """Load a JSON file by name field."""
+def load_html_file(filename: Path) -> str:
+    """Load an HTML file."""
     log = getLogger(__name__)
 
-    for filename in dirpath.glob("*.json"):
+    try:
+        log.info("Loading HTML: %s" % filename)
+        with open(filename, encoding="utf-8") as htmlfile:
+            return htmlfile.read()
+
+    except FileNotFoundError:
+        log.error("HTML file not found: %s" % filename)
+        return None
+
+
+def load_list_file(filename: Path) -> Iterator[str]:
+    """Load a list of values from a file, separated by newlines."""
+    log = getLogger(__name__)
+
+    try:
+        log.info("Loading list: %s" % filename)
+        with open(filename, encoding="utf-8") as listfile:
+            for value in listfile.readlines():
+                value = value.strip(",").strip('"').strip("'")
+                if value != "":
+                    log.debug('Loaded "%s" from: %s' % (value, filename))
+                    yield value
+
+    except FileNotFoundError:
+        log.error("List file not found: %s" % filename)
+        return None
+
+
+def load_manifest_file(name: str, dirpath: Path) -> Dict:
+    """Load a JSON manifest from a file by name field."""
+    log = getLogger(__name__)
+
+    # In theory we could assume that the filename is the name field, since it
+    # usually is--but this is probably a safer way to do it. It may need some
+    # performance testing, especially with larger data sets, to make sure it's
+    # not bogging us down.
+    manifest = None
+    for filename in dirpath.glob("**/*.json"):
         with open(filename, encoding="utf-8") as jsonfile:
             data = json.load(jsonfile)
-            if data.get("name", "") == name:
-                log.info('Loaded manifest "%s" from "%s".' % (name, filename))
-                return data
+        if data.get("name", "") == name:
+            manifest = copy(data)
+            break
+    if not manifest:
+        log.error('JSON manifest "%s" not found in path: %s' % (name, dirpath))
 
-    log.error('JSON manifest "%s" not found in path "%s".' % (name, dirpath))
-    return None
-
-
-def load_source(name: str, dirpath: str) -> Source:
-    """Load source manifest from JSON file."""
-    log = getLogger(__name__)
-
-    source_dict = _load_json_file(name, Path(dirpath))
-    if not source_dict:
-        return None
-
-    source = Source(**source_dict)
-    log.info('Loaded source "%s".' % source.name)
-    return source
-
-
-def load_query(name: str, dirpath: str) -> Query:
-    """Load query manifest from JSON file."""
-    log = getLogger(__name__)
-
-    query_dict = _load_json_file(name, Path(dirpath))
-    if not query_dict:
-        return None
-    query = Query(**query_dict)
-
-    # Parse start & end dates.
-    query.start_date = str_to_date(query.start_date)
-    query.end_date = str_to_date(query.end_date)
-
-    log.info('Loaded query "%s".' % query.name)
-    return query
-
-
-def load_response(name: str, dirpath: str) -> Response:
-    """Load response manifest from JSON file."""
-    log = getLogger(__name__)
-
-    response_dict = _load_json_file(name, Path(dirpath))
-    if not response_dict:
-        return None
-
-    response = Response(**response_dict)
-    log.info('Loaded response "%s".' % response.name)
-    return response
-
-
-def load_document(name: str, dirpath: str) -> Document:
-    """Load document from JSON & HTML files."""
-    log = getLogger(__name__)
-
-    document_dict = _load_json_file(name, Path(dirpath))
-    if not document_dict:
-        return None
-
-    document = Document(**document_dict)
-
-    # Load raw HTML content.
-    if document.content_html != "":
-        filename = Path(dirpath) / document.content_html
+    # Load raw HTML content if necessary.
+    filename_html = manifest.get("content_html", None)
+    if filename_html is not None and filename_html != "":
+        filename = Path(dirpath) / manifest["content_html"]
         if filename.exists():
             with open(filename, encoding="utf-8") as htmlfile:
-                document.content_html = htmlfile.read()
+                manifest["content_html"] = htmlfile.read()
         else:
-            log.warning("Raw HTML content not found at %s, skipping." % filename)
+            log.warning(
+                'Raw HTML specified in "%s" but not found: %s' % (name, filename)
+            )
 
-    # Parse pub_date.
-    if document.pub_date != "":
-        document.pub_date = str_to_date(document.pub_date)
-
-    log.info('Loaded document "%s".' % document.name)
-    return document
+    log.info("Loaded manifest: %s" % filename)
+    return manifest
 
 
 ###############################################################################
@@ -108,78 +88,44 @@ def load_document(name: str, dirpath: str) -> Document:
 ###############################################################################
 
 
-def _save_json_file(manifest: Dict, dirpath: Path) -> None:
-    """Save a JSON file.
+def check_path(dirpath: Path, create: bool = False) -> bool:
+    """Check if a path exists."""
+    log = getLogger(__name__)
+    path_exists = dirpath.exists()
 
-    Args:
-        manifest: Dictionary manifest.
-        dirpath: Directory in which to save. The final filename will be based
-            on the manifest's "name" property.
-    """
+    if not path_exists and create:
+        dirpath.mkdirs(parents=True)
+        log.info("Created directory: %s" % dirpath)
+        path_exists = True
+
+    return path_exists
+
+
+def save_html_file(content: str, filename: Path) -> None:
+    """Save an HTML file."""
     log = getLogger(__name__)
 
-    filename = manifest["name"] + ".json"
-    with open(dirpath / filename, "w", encoding="utf-8") as jsonfile:
-        json.dump(manifest, jsonfile, indent=4, ensure_ascii=False)
-    log.info('Saved manifest "%s" to "%s".' % (manifest["name"], filename))
+    check_path(filename.parent, create=True)
+    with open(filename, "w", encoding="utf-8") as htmlfile:
+        htmlfile.write(content)
+        log.info("Saved HTML to: %s" % filename)
 
 
-def _save_txt_file(content: str, filename: Path) -> None:
-    """Save a raw text file."""
+def save_manifest_file(manifest: Manifest, dirpath: Path) -> None:
+    """Save a manifest to JSON file."""
     log = getLogger(__name__)
 
-    with open(filename, "w", encoding="utf-8") as txtfile:
-        txtfile.write(content)
-    log.info('Saved content to "%s".' % filename)
+    manifest_dict = manifest.to_json()
 
+    # Save raw HTML content if necessary.
+    content_html = manifest_dict.get("content_html", None)
+    if content_html is not None and content_html != "":
+        filename_html = dirpath / f"{manifest.name}.html"
+        save_html_file(content_html, filename_html)
+        manifest_dict["content_html"] = filename_html
 
-def save_source(source: Source, dirpath: str) -> None:
-    """Save source manifest to JSON file."""
-    source_dict = copy(source.__dict__)
-
-    source_dict["queries"] = list(source_dict["queries"])
-    source_dict["responses"] = list(source_dict["responses"])
-    source_dict["documents"] = list(source_dict["documents"])
-
-    _save_json_file(source_dict, Path(dirpath))
-
-
-def save_query(query: Query, dirpath: str) -> None:
-    """Save query manifest to JSON file."""
-    query_dict = copy(query.__dict__)
-
-    query_dict["responses"] = list(query_dict["responses"])
-    query_dict["documents"] = list(query_dict["documents"])
-
-    # Parse start & end dates.
-    query_dict["start_date"] = date_to_str(query_dict["start_date"])
-    query_dict["end_date"] = date_to_str(query_dict["end_date"])
-
-    _save_json_file(query_dict, Path(dirpath))
-
-
-def save_response(response: Response, dirpath: str) -> None:
-    """Save response manifest to JSON file."""
-    response_dict = copy(response.__dict__)
-
-    response_dict["documents"] = list(response_dict["documents"])
-
-    _save_json_file(response_dict, Path(dirpath))
-
-
-def save_document(document: Document, dirpath: str) -> None:
-    """Save document manifest to JSON and HTML files."""
-    document_dict = copy(document.__dict__)
-
-    # Save raw HTML content and store filename in manifest.
-    if document_dict.get("content_html", "") != "":
-        content_html = document_dict["content_html"]
-        filename = document_dict["name"] + ".html"
-        _save_txt_file(content_html, Path(dirpath) / filename)
-        document_dict["content_html"] = filename
-
-    # Parse pub_date.
-    if document_dict.get("pub_date", "") != "":
-        document_dict["pub_date"] = date_to_str(document_dict["pub_date"])
-
-    _save_json_file(document_dict, Path(dirpath))
+    check_path(dirpath, create=True)
+    filename = dirpath / f"{manifest.name}.json"
+    with open(filename, "w", encoding="utf-8") as jsonfile:
+        json.dump(manifest_dict, jsonfile, indent=4, ensure_ascii=False)
+    log.info('Saved manifest "%s" to: %s' % (manifest.name, filename))

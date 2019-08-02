@@ -1,19 +1,15 @@
-"""WE1S Chomp: A Digital Humanities Web Scraper
-
-For detailed documentation and instructions, see:
-- http://we1s.ucsb.edu/
-- https://github.com/seangilleran/we1s_chomp
-"""
-
 from setuptools import setup
 
+import we1s_chomp
+
+
 setup(
-    name="we1s_chomp",
-    version="0.1.0",
-    description="A Digital Humanities Web Scraper",
-    author="Sean Gilleran",
-    author_email="sgilleran@gmail.com",
-    packages=["we1s_chomp"],
+    name=we1s_chomp.__name__,
+    version=we1s_chomp.__version__,
+    description=we1s_chomp.__description__,
+    author=we1s_chomp.__author__,
+    author_email=we1s_chomp.__email__,
+    packages=[we1s_chomp.__name__],
     install_requires=[
         "beautifulsoup4",
         "bleach",
@@ -23,8 +19,8 @@ setup(
         "regex",
         "requests",
         "selenium",
-        "unidecode"
+        "unidecode",
     ],
-    license="MIT",
-    url="https://github.com/seangilleran/we1s_chomp",
+    license=we1s_chomp.__license__,
+    url=we1s_chomp.__url__,
 )
