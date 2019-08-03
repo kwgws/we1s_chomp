@@ -1,0 +1,14 @@
+{
+    "query_str": "humanities",
+    "start_date": "2000-01-01T00:00:00Z",
+    "end_date": "2019-12-31T00:00:00Z",
+    "source_name": "we1s",
+    "response_names": [],
+    "article_names": [],
+    "name": "we1s_humanities_2000-01-01_2019-12-31",
+    "chomp_id": "d69912f7a790457fa0506fabc6325717",
+    "api_software": "chomp2",
+    "created_date": "2019-08-03T00:30:48Z",
+    "updated_date": "2019-08-03T00:30:48Z",
+    "notes": []
+}

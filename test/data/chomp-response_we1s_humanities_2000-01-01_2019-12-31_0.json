@@ -1,0 +1,14 @@
+{
+    "name": "chomp-response_we1s_humanities_2000-01-01_2019-12-31_0",
+    "chomp_id": "5d7942b032ba43baa814a2059d4dc46d",
+    "api_software": "chomp2",
+    "created_date": "2019-08-03T00:30:48Z",
+    "updated_date": "2019-08-03T00:30:48Z",
+    "notes": [],
+    "url": "http://we1s.ucsb.edu",
+    "content": "12345 Hello!",
+    "api_data_provider": "wordpress",
+    "source_name": "we1s",
+    "query_name": "we1s_humanities_2000-01-01_2019-12-31",
+    "article_names": []
+}

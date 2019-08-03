@@ -7,10 +7,10 @@ import json
 from copy import copy
 from logging import getLogger
 from pathlib import Path
-from typing import Dict, Iterator
+from typing import Iterator, Union
 
-from we1s_chomp.model import Manifest
-
+from we1s_chomp import model
+from we1s_chomp.model import Article, Query, Response, Source
 
 ###############################################################################
 # Load/import functions.                                                      #
@@ -49,7 +49,9 @@ def load_list_file(filename: Path) -> Iterator[str]:
         return None
 
 
-def load_manifest_file(name: str, dirpath: Path) -> Dict:
+def load_manifest_file(
+    name: str, dirpath: Path
+) -> Union[Source, Query, Response, Article]:
     """Load a JSON manifest from a file by name field."""
     log = getLogger(__name__)
 
@@ -60,23 +62,21 @@ def load_manifest_file(name: str, dirpath: Path) -> Dict:
     manifest = None
     for filename in dirpath.glob("**/*.json"):
         with open(filename, encoding="utf-8") as jsonfile:
-            data = json.load(jsonfile)
-        if data.get("name", "") == name:
-            manifest = copy(data)
+            manifest = json.load(jsonfile, object_hook=model.from_json)
+        if isinstance(manifest, model.Manifest) and manifest.name == name:
             break
     if not manifest:
         log.error('JSON manifest "%s" not found in path: %s' % (name, dirpath))
 
     # Load raw HTML content if necessary.
-    filename_html = manifest.get("content_html", None)
-    if filename_html is not None and filename_html != "":
-        filename = Path(dirpath) / manifest["content_html"]
-        if filename.exists():
-            with open(filename, encoding="utf-8") as htmlfile:
-                manifest["content_html"] = htmlfile.read()
+    if hasattr(manifest, "content_html") and manifest.content_html != "":
+        filename_html = Path(dirpath) / manifest.content_html
+        if filename_html.exists():
+            with open(filename_html, encoding="utf-8") as htmlfile:
+                manifest.content_html = htmlfile.read()
         else:
             log.warning(
-                'Raw HTML specified in "%s" but not found: %s' % (name, filename)
+                'Raw HTML specified in "%s" but not found: %s' % (name, filename_html)
             )
 
     log.info("Loaded manifest: %s" % filename)
@@ -94,7 +94,7 @@ def check_path(dirpath: Path, create: bool = False) -> bool:
     path_exists = dirpath.exists()
 
     if not path_exists and create:
-        dirpath.mkdirs(parents=True)
+        dirpath.mkdir(parents=True)
         log.info("Created directory: %s" % dirpath)
         path_exists = True
 
@@ -111,21 +111,25 @@ def save_html_file(content: str, filename: Path) -> None:
         log.info("Saved HTML to: %s" % filename)
 
 
-def save_manifest_file(manifest: Manifest, dirpath: Path) -> None:
+def save_manifest_file(
+    data: Union[Source, Query, Response, Article], dirpath: Path
+) -> None:
     """Save a manifest to JSON file."""
     log = getLogger(__name__)
 
-    manifest_dict = manifest.to_json()
+    # Use a copy so we don't mess with the original object's contents.
+    manifest = copy(data)
 
     # Save raw HTML content if necessary.
-    content_html = manifest_dict.get("content_html", None)
-    if content_html is not None and content_html != "":
+    if hasattr(manifest, "content_html") and manifest.content_html != "":
         filename_html = dirpath / f"{manifest.name}.html"
-        save_html_file(content_html, filename_html)
-        manifest_dict["content_html"] = filename_html
+        save_html_file(manifest.content_html, filename_html)
+        manifest.content_html = f"{manifest.name}.html"
 
     check_path(dirpath, create=True)
     filename = dirpath / f"{manifest.name}.json"
     with open(filename, "w", encoding="utf-8") as jsonfile:
-        json.dump(manifest_dict, jsonfile, indent=4, ensure_ascii=False)
+        json.dump(
+            manifest, jsonfile, default=model.to_json, indent=4, ensure_ascii=False
+        )
     log.info('Saved manifest "%s" to: %s' % (manifest.name, filename))

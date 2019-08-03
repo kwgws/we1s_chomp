@@ -1,0 +1,22 @@
+{
+    "webpage": "http://we1s.ucsb.edu",
+    "content_type": "website",
+    "country": "US",
+    "language": "en-US",
+    "copyright": "(C) 2017-2019 UCSB and the WE1S Project",
+    "tags": [
+        "hello"
+    ],
+    "collection_identifiers": [
+        "we1s"
+    ],
+    "query_names": [],
+    "response_names": [],
+    "article_names": [],
+    "name": "we1s",
+    "chomp_id": "5413d424fc1344049a12a6bbd8f85c8a",
+    "api_software": "chomp2",
+    "created_date": "2019-08-03T00:30:48Z",
+    "updated_date": "2019-08-03T00:30:48Z",
+    "notes": []
+}

@@ -1,0 +1,21 @@
+{
+    "name": "chomp_we1s_humanities_2000-01-01_2019-12-31_0",
+    "chomp_id": "6cf4de7ae3494e1192a7646ca896ca9f",
+    "api_software": "chomp2",
+    "created_date": "2019-08-03T00:30:48Z",
+    "updated_date": "2019-08-03T00:30:48Z",
+    "notes": [],
+    "url": "http://we1s.ucsb.edu",
+    "title": "WhatEvery1Says Article",
+    "pub": "WhatEvery1Says",
+    "pub_date": "2019-12-31T00:00:00Z",
+    "content_html": "chomp_we1s_humanities_2000-01-01_2019-12-31_0.html",
+    "content": "",
+    "length": 1,
+    "copyright": "(C) 2017-2019 UCSB and the WE1S Project",
+    "api_data_provider": "wordpress",
+    "keywords": [],
+    "source_name": "",
+    "query_name": "",
+    "response_name": ""
+}

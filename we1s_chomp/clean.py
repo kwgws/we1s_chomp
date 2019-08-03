@@ -134,11 +134,7 @@ def str_to_date(
     log = getLogger(__name__)
 
     # Do minor clean-up on date string.
-    date_str = date_str.lower().strip()
-
-    # Don't bother with the parser for simple stuff.
-    if date_str == "now" or date_str == "today":
-        return datetime.utcnow()
+    date_str = date_str.lower().strip().rstrip("z")
 
     # Get date from string.
     try:
@@ -155,12 +151,12 @@ def str_to_date(
         log.warning("Out of date range: %s." % date.strftime(STRFTIME))
         return None
 
-    return date
+    return date.replace(microsecond=0)
 
 
 def date_to_str(date_obj: datetime) -> str:
     """Print datetime as string using WE1S STRFTIME format."""
-    return date_obj.strftime(STRFTIME)
+    return date_obj.replace(microsecond=0).strftime(STRFTIME)
 
 
 def get_stub(text: str, stub_length: int = _DEFAULT_STUB_LENGTH) -> str:
