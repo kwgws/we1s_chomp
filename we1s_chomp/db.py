@@ -52,7 +52,7 @@ def load_list_file(filename: Path) -> Iterator[str]:
 def load_manifest_file(
     name: str, dirpath: Path
 ) -> Union[Source, Query, Response, Article]:
-    """Load a JSON manifest from a file by name field."""
+    """Load a JSON manifest from a file by its name field."""
     log = getLogger(__name__)
 
     # In theory we could assume that the filename is the name field, since it
