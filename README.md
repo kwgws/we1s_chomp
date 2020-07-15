@@ -36,7 +36,7 @@ in `google.py` and `wordpress.py` for more information.
 The following environment variables must be enabled to properly run the
 included Jupyter notebooks:
 
-- `CHOMP_SELENIUM_GRID_URL`: URL of Selenium grid with at least one open
+- `CHOMP_SELENIUM_GRID_URL`: URL of a Selenium grid with at least one open
   Chrome node.
 - `CHOMP_GOOGLE_CX`: ID string for a Google Custom Search Engine API.
 - `CHOMP_GOOGLE_KEY`: Key string for a Google Custom Search Engine API.
