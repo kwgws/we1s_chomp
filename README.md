@@ -7,7 +7,7 @@
  ╚══╝╚══╝ ╚══════╝ ╚═╝╚══════╝     ╚═════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     
 ```
 
-**A Digital Humanities Web Scraper by Sean Gilleran and the WE1S Team**
+**A Digital Humanities Web Scraper by Catherine Gilleran and the WE1S Team**
 
 ## Installation
 
@@ -15,7 +15,7 @@ Set up a virtual machine, Docker container or other environment with Python >3.6
 and the latest version of Jupyter Notebook.
 
 Clone the repository to a working directory with:
-`git clone https://github.com/seangilleran/we1s_chomp`
+`git clone https://github.com/kwgs/we1s_chomp`
 
 Move to the working directory and install the required Python packages:
 `pip install -r requirements.txt`
